@@ -2183,7 +2183,7 @@ body {
     margin: 0 !important;
     padding: 0 !important;
 
-    border-radius: 0 !important;
+    border-radius: 18px !important;
 
     aspect-ratio:
         ${ratioWidth} / ${ratioHeight} !important;
