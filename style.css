@@ -1492,3 +1492,114 @@ button {
     }
 
 }
+/* =========================================================
+   생성기 로그인 화면
+========================================================= */
+
+.login-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: #0b0d12;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 420px;
+
+    padding: 40px 32px;
+
+    border: 1px solid #303543;
+    border-radius: 20px;
+
+    background: #171a21;
+
+    text-align: center;
+}
+
+.login-box h1 {
+    margin: 0 0 12px;
+
+    font-size: 26px;
+}
+
+.login-box p {
+    margin: 0 0 24px;
+
+    color: #aeb5c5;
+}
+
+#loginPassword {
+    box-sizing: border-box;
+
+    width: 100%;
+    height: 52px;
+
+    padding: 0 16px;
+
+    border: 1px solid #3b4150;
+    border-radius: 10px;
+
+    background: #0f1117;
+    color: #ffffff;
+
+    font-size: 16px;
+    outline: none;
+}
+
+#loginPassword:focus {
+    border-color: #7c63ff;
+}
+
+#loginButton {
+    width: 100%;
+    height: 52px;
+
+    margin-top: 14px;
+
+    border: 0;
+    border-radius: 10px;
+
+    background: #7c63ff;
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+#loginButton:hover {
+    filter: brightness(1.08);
+}
+
+#loginButton:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+#loginError {
+    min-height: 20px;
+
+    margin: 14px 0 0;
+
+    color: #ff6b6b;
+    font-size: 14px;
+}
+
+/* 로그인 전에는 기존 생성기를 숨김 */
+body:not(.authenticated) .app {
+    display: none;
+}
+
+/* 로그인 성공하면 로그인 화면을 숨김 */
+body.authenticated .login-gate {
+    display: none;
+}
