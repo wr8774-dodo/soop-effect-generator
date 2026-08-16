@@ -2107,54 +2107,206 @@ for (
         const [ratioWidth, ratioHeight] =
             ratioMap[state.ratio];
 
-        const html = `<!DOCTYPE html>
+const html = `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
 <title>SOOP Effect</title>
 
 <style>
 ${css}
 
+/* =========================================
+   배포 페이지 전용 초기화
+========================================= */
+
 html,
 body {
-    margin: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+
     width: 100%;
     height: 100%;
+
     overflow: hidden;
+
+    background: transparent !important;
+}
+
+body {
+    position: relative;
+}
+
+
+/* =========================================
+   SOOP iframe 전체 영역
+========================================= */
+
+#soop-effect-root {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    padding: 0;
+
+    overflow: hidden;
+
     background: transparent;
 }
 
-body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
-#soop-effect-root {
-    position: relative;
-    width: 100%;
-    aspect-ratio: ${ratioWidth} / ${ratioHeight};
-    overflow: hidden;
-}
+/* =========================================
+   생성기 미리보기를 iframe에 꽉 맞춤
+========================================= */
 
-#soop-effect-root > * {
+#soop-effect-root > .normal-preview,
+#soop-effect-root > .polaroid-preview {
+
+    position: absolute !important;
+
+    inset: 0 !important;
+
     width: 100% !important;
     height: 100% !important;
+
     max-width: none !important;
+    max-height: none !important;
+
     margin: 0 !important;
+    padding: 0 !important;
+
+    aspect-ratio: ${ratioWidth} / ${ratioHeight} !important;
+
+    overflow: hidden !important;
 }
+
+
+/* =========================================
+   일반 모드 사진
+========================================= */
+
+#soop-effect-root .preview-photo1,
+#soop-effect-root .preview-photo2,
+#soop-effect-root .preview-photo3 {
+
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    max-width: none;
+    max-height: none;
+}
+
+
+/* =========================================
+   SOOP에서 불필요한 편집 UI 방지
+========================================= */
+
+#soop-effect-root {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 </style>
 </head>
+
 
 <body>
 
 <div id="soop-effect-root">
 ${clone.outerHTML}
 </div>
+
+
+<script>
+(() => {
+
+    const preview =
+        document.querySelector(
+            "#soop-effect-root .normal-preview"
+        );
+
+    if (!preview) {
+        return;
+    }
+
+
+    /* =====================================
+       마우스를 올리면 ②
+    ===================================== */
+
+    preview.addEventListener(
+        "mouseenter",
+        () => {
+
+            preview.classList.remove(
+                "clicked"
+            );
+        }
+    );
+
+
+    /* =====================================
+       클릭하면 ③
+    ===================================== */
+
+    preview.addEventListener(
+        "click",
+        () => {
+
+            const photo2 =
+                preview.querySelector(
+                    ".preview-photo2"
+                );
+
+            const photo3 =
+                preview.querySelector(
+                    ".preview-photo3"
+                );
+
+            if (
+                !photo2 ||
+                !photo3 ||
+                !photo2.getAttribute("src") ||
+                !photo3.getAttribute("src")
+            ) {
+                return;
+            }
+
+            preview.classList.add(
+                "clicked"
+            );
+        }
+    );
+
+
+    /* =====================================
+       마우스를 떼면 무조건 ①
+    ===================================== */
+
+    preview.addEventListener(
+        "mouseleave",
+        () => {
+
+            preview.classList.remove(
+                "clicked"
+            );
+        }
+    );
+
+})();
+</script>
 
 </body>
 </html>`;
