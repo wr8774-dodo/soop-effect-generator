@@ -49,7 +49,123 @@ function createPhotoState() {
     };
 }
 
+function createPhotoState() {
+    return {
+        src: "",
+        x: 0,
+        y: 0,
+        zoom: 1
+    };
+}
+/* =========================================================
+   생성기 로그인
+========================================================= */
 
+const LOGIN_API =
+    "https://soop-effect-api.wr7881.workers.dev/login";
+
+const AUTH_TOKEN_KEY =
+    "soop_auth_token";
+
+const loginGate =
+    document.getElementById("loginGate");
+
+const loginPassword =
+    document.getElementById("loginPassword");
+
+const loginButton =
+    document.getElementById("loginButton");
+
+const loginError =
+    document.getElementById("loginError");
+
+
+async function loginToGenerator() {
+
+    const password =
+        loginPassword.value.trim();
+
+    if (!password) {
+        loginError.textContent =
+            "비밀번호를 입력해주세요.";
+        return;
+    }
+
+    loginButton.disabled = true;
+    loginError.textContent = "";
+
+    try {
+
+        const response =
+            await fetch(
+                LOGIN_API,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        password
+                    })
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !result.ok ||
+            !result.token
+        ) {
+            throw new Error(
+                result.error ||
+                "비밀번호가 올바르지 않습니다."
+            );
+        }
+
+        localStorage.setItem(
+            AUTH_TOKEN_KEY,
+            result.token
+        );
+
+        document.body.classList.add(
+            "authenticated"
+        );
+
+        loginPassword.value = "";
+
+    } catch (error) {
+
+        loginError.textContent =
+            error.message ||
+            "로그인에 실패했습니다.";
+
+    } finally {
+
+        loginButton.disabled = false;
+    }
+}
+
+
+loginButton.addEventListener(
+    "click",
+    loginToGenerator
+);
+
+
+loginPassword.addEventListener(
+    "keydown",
+    (event) => {
+
+        if (event.key === "Enter") {
+            loginToGenerator();
+        }
+    }
+);
 /* =========================================================
    요소 찾기
 ========================================================= */
