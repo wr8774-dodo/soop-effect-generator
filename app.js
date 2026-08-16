@@ -1899,91 +1899,200 @@ function createProjectSettings() {
    개발용 완료 문구는 표시하지 않습니다.
 ========================================================= */
 
-exportButton.addEventListener(
-    "click",
-    async () => {
+exportButton.addEventListener("click", async () => {
+    const validation = validateProject();
 
-        const validation =
-            validateProject();
+    if (!validation.ok) {
+        alert(validation.message);
+        return;
+    }
 
-        if (!validation.ok) {
+    exportResult.classList.add("hidden");
+    uploadStatus.classList.remove("hidden");
 
-            alert(
-                validation.message
-            );
+    uploadStatusTitle.textContent = "⏳ 배포 중...";
+    uploadStatusText.textContent =
+        "GitHub Pages에 결과물을 만들고 있습니다.";
 
-            return;
+    exportButton.disabled = true;
+
+    try {
+        /*
+         * 현재 편집기에서 선택한 사진과 효과가 들어 있는
+         * 미리보기 영역을 독립 실행 HTML로 만듭니다.
+         */
+        const source =
+            state.mode === "normal"
+                ? normalPreview
+                : polaroidPreview;
+
+        const clone = source.cloneNode(true);
+
+        /*
+         * 이미지가 data URL로 들어 있으므로 clone에도 그대로
+         * 포함됩니다.
+         */
+        clone.querySelectorAll("img").forEach((img, index) => {
+            const original =
+                source.querySelectorAll("img")[index];
+
+            if (original && original.src) {
+                img.src = original.src;
+            }
+        });
+
+        /*
+         * 현재 페이지의 CSS를 결과 페이지에도 넣습니다.
+         */
+        let css = "";
+
+        for (const sheet of document.styleSheets) {
+            try {
+                for (const rule of sheet.cssRules) {
+                    css += rule.cssText + "\n";
+                }
+            } catch (error) {
+                console.warn(
+                    "일부 CSS를 읽지 못했습니다.",
+                    error
+                );
+            }
         }
 
-        /* 이전 결과 숨기기 */
+        const [ratioWidth, ratioHeight] =
+            ratioMap[state.ratio];
 
-        exportResult.classList.add(
-            "hidden"
-        );
+        const html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-        uploadStatus.classList.remove(
-            "hidden"
-        );
+<title>SOOP Effect</title>
+
+<style>
+${css}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#soop-effect-root {
+    position: relative;
+    width: 100%;
+    aspect-ratio: ${ratioWidth} / ${ratioHeight};
+    overflow: hidden;
+}
+
+#soop-effect-root > * {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+}
+</style>
+</head>
+
+<body>
+
+<div id="soop-effect-root">
+${clone.outerHTML}
+</div>
+
+</body>
+</html>`;
 
         uploadStatusTitle.textContent =
-            "⏳ 준비 중...";
+            "⏳ GitHub에 업로드 중...";
 
         uploadStatusText.textContent =
-            "결과물을 준비하고 있습니다.";
+            "잠시만 기다려주세요.";
 
-        exportButton.disabled =
-            true;
+        const response = await fetch(
+            "https://soop-effect-api.wr7881.workers.dev/deploy",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    html,
+                    ratio: state.ratio
+                })
+            }
+        );
+
+        let result;
 
         try {
-
-            const projectSettings =
-                createProjectSettings();
-
-            console.log(
-                "배포 설정:",
-                projectSettings
-            );
-
-            /*
-               다음 단계에서 바로 이 위치에
-               실제 자동 업로드 서버 연결 코드가 들어갑니다.
-            */
-
-            await new Promise(
-                resolve =>
-                    setTimeout(
-                        resolve,
-                        400
-                    )
-            );
-
-            /*
-               아직 서버가 없으므로
-               개발용 안내 문구를 보여주지 않고
-               상태창 자체를 다시 숨깁니다.
-            */
-
-            uploadStatus.classList.add(
-                "hidden"
-            );
-
+            result = await response.json();
         } catch (error) {
-
-            console.error(error);
-
-            uploadStatusTitle.textContent =
-                "⚠ 오류가 발생했습니다";
-
-            uploadStatusText.textContent =
-                "잠시 후 다시 시도해주세요.";
-
-        } finally {
-
-            exportButton.disabled =
-                false;
+            throw new Error(
+                `서버 응답을 읽지 못했습니다. (${response.status})`
+            );
         }
+
+        if (!response.ok || !result.ok) {
+            throw new Error(
+                result.error ||
+                `배포 실패 (${response.status})`
+            );
+        }
+
+        /*
+         * Worker가 만들어 준 iframe 코드를 그대로 사용합니다.
+         */
+        iframeCode.value =
+            result.iframeCode ||
+            createIframeCode(result.publicUrl);
+
+        uploadStatus.classList.add("hidden");
+
+        exportResult.classList.remove("hidden");
+
+        /*
+         * 결과 영역까지 자동 이동
+         */
+        exportResult.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+        console.log(
+            "SOOP 배포 성공:",
+            result
+        );
+
+    } catch (error) {
+        console.error(error);
+
+        uploadStatus.classList.remove("hidden");
+
+        uploadStatusTitle.textContent =
+            "⚠ 배포에 실패했습니다";
+
+        uploadStatusText.textContent =
+            error?.message ||
+            "잠시 후 다시 시도해주세요.";
+
+    } finally {
+        exportButton.disabled = false;
     }
-);
+});
 
 
 /* =========================================================
