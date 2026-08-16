@@ -2160,6 +2160,9 @@ body {
     overflow: hidden;
 
     background: transparent;
+
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 
@@ -2215,9 +2218,54 @@ body {
 }
 
 
-#soop-effect-root {
+/* =====================================================
+   폴라로이드 배포 전용
+
+   기존 편집기 크기에 묶이지 않고
+   iframe 전체를 기준으로 다시 계산합니다.
+===================================================== */
+
+#soop-effect-root > .polaroid-preview {
+
+    background: transparent !important;
+}
+
+
+#soop-effect-root .polaroid-preview-background,
+#soop-effect-root #polaroidPreviewBackground {
+
+    position: absolute !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    transform: translate(-50%, -50%) !important;
+
+    transform-origin: center center !important;
+
+    pointer-events: none;
     user-select: none;
     -webkit-user-select: none;
+}
+
+
+#soop-effect-root .polaroid-card,
+#soop-effect-root #polaroidCard {
+
+    transform-origin: center center;
+}
+
+
+#soop-effect-root .polaroid-inner-image,
+#soop-effect-root #polaroidInnerImage {
+
+    max-width: none !important;
+    max-height: none !important;
+
+    image-rendering: auto;
+
+    -webkit-user-drag: none;
+    user-select: none;
 }
 
 </style>
@@ -2240,532 +2288,851 @@ ${clone.outerHTML}
         );
 
 
-    const preview =
+    /* =================================================
+       모드 찾기
+    ================================================= */
+
+    const normalPreview =
         root.querySelector(
             ".normal-preview"
         );
 
 
-    /*
-     * 폴라로이드 모드라면
-     * 일반 사진용 코드는 실행하지 않습니다.
-     */
-
-    if (!preview) {
-        return;
-    }
-
-
-    const photos = [
-        ${JSON.stringify({
-            x: state.normal.photos[0].x,
-            y: state.normal.photos[0].y,
-            zoom: state.normal.photos[0].zoom
-        })},
-
-        ${JSON.stringify({
-            x: state.normal.photos[1].x,
-            y: state.normal.photos[1].y,
-            zoom: state.normal.photos[1].zoom
-        })},
-
-        ${JSON.stringify({
-            x: state.normal.photos[2].x,
-            y: state.normal.photos[2].y,
-            zoom: state.normal.photos[2].zoom
-        })}
-    ];
-
-
-    const editorWidth =
-        ${Math.max(normalPreview.clientWidth, 1)};
-
-    const editorHeight =
-        ${Math.max(normalPreview.clientHeight, 1)};
-
-
-    const previewPhotos = [
-        preview.querySelector(
-            ".preview-photo1"
-        ),
-
-        preview.querySelector(
-            ".preview-photo2"
-        ),
-
-        preview.querySelector(
-            ".preview-photo3"
-        )
-    ];
-
-
-    const shine =
-        preview.querySelector(
-            ".preview-shine"
-        );
-
-
-    const hearts =
-        preview.querySelector(
-            ".preview-hearts"
+    const polaroidPreview =
+        root.querySelector(
+            ".polaroid-preview"
         );
 
 
     /* =================================================
-       사진 크기 다시 계산
+       일반 모드
 
-       SOOP에서 iframe 크기가 달라져도
-       사진이 항상 영역을 꽉 채웁니다.
+       현재 정상 작동 중인 코드를 그대로 유지합니다.
     ================================================= */
 
-    function updatePhotos() {
+    if (normalPreview) {
 
-        const cw =
-            preview.clientWidth;
-
-        const ch =
-            preview.clientHeight;
+        const preview =
+            normalPreview;
 
 
-        if (!cw || !ch) {
-            return;
-        }
+        const photos = [
+            ${JSON.stringify({
+                x: state.normal.photos[0].x,
+                y: state.normal.photos[0].y,
+                zoom: state.normal.photos[0].zoom
+            })},
+
+            ${JSON.stringify({
+                x: state.normal.photos[1].x,
+                y: state.normal.photos[1].y,
+                zoom: state.normal.photos[1].zoom
+            })},
+
+            ${JSON.stringify({
+                x: state.normal.photos[2].x,
+                y: state.normal.photos[2].y,
+                zoom: state.normal.photos[2].zoom
+            })}
+        ];
 
 
-        const scaleX =
-            cw / editorWidth;
+        const editorWidth =
+            ${Math.max(normalPreview.clientWidth, 1)};
 
-        const scaleY =
-            ch / editorHeight;
-
-
-        previewPhotos.forEach(
-            (img, index) => {
-
-                if (
-                    !img ||
-                    !img.src
-                ) {
-                    return;
-                }
+        const editorHeight =
+            ${Math.max(normalPreview.clientHeight, 1)};
 
 
-                const update = () => {
+        const previewPhotos = [
+            preview.querySelector(
+                ".preview-photo1"
+            ),
+
+            preview.querySelector(
+                ".preview-photo2"
+            ),
+
+            preview.querySelector(
+                ".preview-photo3"
+            )
+        ];
+
+
+        const shine =
+            preview.querySelector(
+                ".preview-shine"
+            );
+
+
+        const hearts =
+            preview.querySelector(
+                ".preview-hearts"
+            );
+
+
+        /* =============================================
+           일반 사진 크기
+        ============================================= */
+
+        function updatePhotos() {
+
+            const cw =
+                preview.clientWidth;
+
+            const ch =
+                preview.clientHeight;
+
+
+            if (!cw || !ch) {
+                return;
+            }
+
+
+            const scaleX =
+                cw / editorWidth;
+
+            const scaleY =
+                ch / editorHeight;
+
+
+            previewPhotos.forEach(
+                (img, index) => {
 
                     if (
-                        !img.naturalWidth ||
-                        !img.naturalHeight
+                        !img ||
+                        !img.src
                     ) {
                         return;
                     }
 
 
-                    const photo =
-                        photos[index];
+                    const update = () => {
+
+                        if (
+                            !img.naturalWidth ||
+                            !img.naturalHeight
+                        ) {
+                            return;
+                        }
 
 
-                    const scale =
-                        Math.max(
-                            cw /
-                                img.naturalWidth,
-
-                            ch /
-                                img.naturalHeight
-                        ) *
-                        photo.zoom;
+                        const photo =
+                            photos[index];
 
 
-                    const width =
-                        img.naturalWidth *
-                        scale;
+                        const scale =
+                            Math.max(
+                                cw /
+                                    img.naturalWidth,
+
+                                ch /
+                                    img.naturalHeight
+                            ) *
+                            photo.zoom;
 
 
-                    const height =
-                        img.naturalHeight *
-                        scale;
+                        const width =
+                            img.naturalWidth *
+                            scale;
 
 
-                    img.style.width =
-                        width + "px";
+                        const height =
+                            img.naturalHeight *
+                            scale;
 
 
-                    img.style.height =
-                        height + "px";
+                        img.style.width =
+                            width + "px";
 
 
-                    img.style.left =
-                        "50%";
+                        img.style.height =
+                            height + "px";
 
 
-                    img.style.top =
-                        "50%";
+                        img.style.left =
+                            "50%";
 
 
-                    img.style.transform =
-                        "translate(-50%, -50%) " +
-                        "translate(" +
-                        (
-                            photo.x *
-                            scaleX
-                        ) +
-                        "px, " +
-                        (
-                            photo.y *
-                            scaleY
-                        ) +
-                        "px)";
-                };
+                        img.style.top =
+                            "50%";
+
+
+                        img.style.transform =
+                            "translate(-50%, -50%) " +
+                            "translate(" +
+                            (
+                                photo.x *
+                                scaleX
+                            ) +
+                            "px, " +
+                            (
+                                photo.y *
+                                scaleY
+                            ) +
+                            "px)";
+                    };
+
+
+                    if (
+                        img.complete &&
+                        img.naturalWidth
+                    ) {
+
+                        update();
+
+                    } else {
+
+                        img.addEventListener(
+                            "load",
+                            update,
+                            {
+                                once: true
+                            }
+                        );
+                    }
+                }
+            );
+        }
+
+
+        /* =============================================
+           광택 - 일반 모드 전용
+        ============================================= */
+
+        const shineOn =
+            ${shineEnabled.checked ? "true" : "false"};
+
+        const shinePowerValue =
+            ${Number(shinePower.value)};
+
+        const shineSpeedValue =
+            ${Number(shineSpeed.value)};
+
+
+        function playShine() {
+
+            if (
+                !shineOn ||
+                !shine
+            ) {
+                return;
+            }
+
+
+            shine.style.animation =
+                "none";
+
+
+            shine.style.opacity =
+                String(
+                    shinePowerValue
+                );
+
+
+            void shine.offsetWidth;
+
+
+            shine.style.animation =
+                "shineMove " +
+                shineSpeedValue +
+                "s ease-out";
+        }
+
+
+        /* =============================================
+           보잉 - 일반 모드 전용
+        ============================================= */
+
+        const boingOn =
+            ${boingEnabled.checked ? "true" : "false"};
+
+        const boingPowerValue =
+            ${Number(boingPower.value)};
+
+
+        function playBoing() {
+
+            if (!boingOn) {
+                return;
+            }
+
+
+            preview.style.setProperty(
+                "--boing",
+                String(
+                    boingPowerValue
+                )
+            );
+
+
+            preview.style.animation =
+                "none";
+
+
+            void preview.offsetWidth;
+
+
+            preview.style.animation =
+                "previewBoing .58s ease-out";
+        }
+
+
+        /* =============================================
+           하트 - 일반 모드 전용
+        ============================================= */
+
+        const heartsOn =
+            ${heartEnabled.checked ? "true" : "false"};
+
+        const heartCountValue =
+            ${Number(heartCount.value)};
+
+        const heartSizeValue =
+            ${Number(heartSize.value)};
+
+        const heartSpreadValue =
+            ${Number(heartSpread.value)};
+
+
+        function createHearts() {
+
+            if (
+                !heartsOn ||
+                !hearts
+            ) {
+                return;
+            }
+
+
+            const symbols = [
+                "♥",
+                "♡",
+                "💗",
+                "💕"
+            ];
+
+
+            for (
+                let i = 0;
+                i < heartCountValue;
+                i++
+            ) {
+
+                const heart =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                heart.className =
+                    "heart";
+
+
+                heart.textContent =
+                    symbols[
+                        Math.floor(
+                            Math.random() *
+                            symbols.length
+                        )
+                    ];
+
+
+                const angle =
+                    Math.random() *
+                    Math.PI *
+                    2;
+
+
+                const distance =
+                    heartSpreadValue *
+                    (
+                        0.35 +
+                        Math.random() *
+                        0.65
+                    );
+
+
+                const x =
+                    Math.cos(angle) *
+                    distance;
+
+
+                const y =
+                    Math.sin(angle) *
+                    distance;
+
+
+                const rotation =
+                    -90 +
+                    Math.random() *
+                    180;
+
+
+                const actualSize =
+                    heartSizeValue *
+                    (
+                        0.65 +
+                        Math.random() *
+                        0.75
+                    );
+
+
+                heart.style.fontSize =
+                    actualSize +
+                    "px";
+
+
+                heart.style.color =
+                    Math.random() > 0.5
+                        ? "#ff6fae"
+                        : "#ff9ac5";
+
+
+                heart.style.setProperty(
+                    "--heart-x",
+                    x + "px"
+                );
+
+
+                heart.style.setProperty(
+                    "--heart-y",
+                    y + "px"
+                );
+
+
+                heart.style.setProperty(
+                    "--heart-r",
+                    rotation + "deg"
+                );
+
+
+                heart.style.setProperty(
+                    "--heart-duration",
+                    (
+                        0.65 +
+                        Math.random() *
+                        0.55
+                    ) +
+                    "s"
+                );
+
+
+                hearts.appendChild(
+                    heart
+                );
+
+
+                heart.addEventListener(
+                    "animationend",
+                    () => {
+                        heart.remove();
+                    }
+                );
+            }
+        }
+
+
+        /* =============================================
+           ① → ② + 광택
+        ============================================= */
+
+        preview.addEventListener(
+            "mouseenter",
+            () => {
+
+                preview.classList.remove(
+                    "clicked"
+                );
+
+                playShine();
+            }
+        );
+
+
+        /* =============================================
+           클릭 → ③ + 보잉 + 하트
+        ============================================= */
+
+        preview.addEventListener(
+            "click",
+            () => {
+
+                const photo2 =
+                    previewPhotos[1];
+
+
+                const photo3 =
+                    previewPhotos[2];
 
 
                 if (
-                    img.complete &&
-                    img.naturalWidth
+                    !photo2 ||
+                    !photo3 ||
+                    !photo2.getAttribute(
+                        "src"
+                    ) ||
+                    !photo3.getAttribute(
+                        "src"
+                    )
+                ) {
+                    return;
+                }
+
+
+                preview.classList.add(
+                    "clicked"
+                );
+
+
+                playBoing();
+
+                createHearts();
+            }
+        );
+
+
+        /* =============================================
+           마우스를 떼면 ①
+        ============================================= */
+
+        preview.addEventListener(
+            "mouseleave",
+            () => {
+
+                preview.classList.remove(
+                    "clicked"
+                );
+
+                playShine();
+            }
+        );
+
+
+        updatePhotos();
+
+
+        window.addEventListener(
+            "resize",
+            updatePhotos
+        );
+    }
+
+
+    /* =================================================
+       폴라로이드 모드
+
+       중요:
+       이 블록에는 광택 / 보잉 / 하트 코드가 없습니다.
+    ================================================= */
+
+    if (polaroidPreview) {
+
+        const preview =
+            polaroidPreview;
+
+
+        const background =
+            preview.querySelector(
+                "#polaroidPreviewBackground"
+            ) ||
+            preview.querySelector(
+                ".polaroid-preview-background"
+            );
+
+
+        const card =
+            preview.querySelector(
+                "#polaroidCard"
+            ) ||
+            preview.querySelector(
+                ".polaroid-card"
+            );
+
+
+        const innerImage =
+            preview.querySelector(
+                "#polaroidInnerImage"
+            ) ||
+            preview.querySelector(
+                ".polaroid-inner-image"
+            );
+
+
+        /*
+         * 생성기에서 폴라로이드 미리보기의
+         * 실제 기준 크기
+         */
+
+        const editorWidth =
+            ${Math.max(polaroidPreview.clientWidth, 1)};
+
+        const editorHeight =
+            ${Math.max(polaroidPreview.clientHeight, 1)};
+
+
+        /*
+         * 현재 폴라로이드 설정을
+         * 배포 페이지 안에 저장
+         */
+
+        const settings = ${JSON.stringify({
+            x: state.polaroid.x,
+            y: state.polaroid.y,
+            zoom: state.polaroid.zoom,
+            cardX: state.polaroid.cardX,
+            cardY: state.polaroid.cardY,
+            innerX: state.polaroid.innerX,
+            innerY: state.polaroid.innerY,
+            innerZoom: state.polaroid.innerZoom
+        })};
+
+
+        /* =============================================
+           폴라로이드 크기/위치 다시 계산
+        ============================================= */
+
+        function updatePolaroidLayout() {
+
+            const cw =
+                preview.clientWidth;
+
+
+            const ch =
+                preview.clientHeight;
+
+
+            if (
+                !cw ||
+                !ch
+            ) {
+                return;
+            }
+
+
+            const scaleX =
+                cw / editorWidth;
+
+
+            const scaleY =
+                ch / editorHeight;
+
+
+            const uniformScale =
+                Math.min(
+                    scaleX,
+                    scaleY
+                );
+
+
+            /* =========================================
+               배경 사진
+
+               iframe 전체를 cover 방식으로 채웁니다.
+               검은 여백 방지.
+            ========================================= */
+
+            if (background) {
+
+                const updateBackground =
+                    () => {
+
+                        if (
+                            !background.naturalWidth ||
+                            !background.naturalHeight
+                        ) {
+                            return;
+                        }
+
+
+                        const coverScale =
+                            Math.max(
+                                cw /
+                                    background.naturalWidth,
+
+                                ch /
+                                    background.naturalHeight
+                            ) *
+                            settings.zoom;
+
+
+                        const width =
+                            background.naturalWidth *
+                            coverScale;
+
+
+                        const height =
+                            background.naturalHeight *
+                            coverScale;
+
+
+                        background.style.width =
+                            width + "px";
+
+
+                        background.style.height =
+                            height + "px";
+
+
+                        background.style.left =
+                            "calc(50% + " +
+                            (
+                                settings.x *
+                                scaleX
+                            ) +
+                            "px)";
+
+
+                        background.style.top =
+                            "calc(50% + " +
+                            (
+                                settings.y *
+                                scaleY
+                            ) +
+                            "px)";
+
+
+                        background.style.transform =
+                            "translate(-50%, -50%)";
+                    };
+
+
+                if (
+                    background.complete &&
+                    background.naturalWidth
                 ) {
 
-                    update();
+                    updateBackground();
 
                 } else {
 
-                    img.addEventListener(
+                    background.addEventListener(
                         "load",
-                        update,
+                        updateBackground,
                         {
                             once: true
                         }
                     );
                 }
             }
-        );
-    }
 
 
-    /* =================================================
-       광택
-    ================================================= */
+            /* =========================================
+               폴라로이드 카드 위치
 
-    const shineOn =
-        ${shineEnabled.checked ? "true" : "false"};
+               생성기에서 정한 위치를
+               iframe 크기에 맞게 비례 조정합니다.
+            ========================================= */
 
-    const shinePower =
-        ${Number(shinePower.value)};
+            if (card) {
 
-    const shineSpeed =
-        ${Number(shineSpeed.value)};
+                card.style.left =
+                    "calc(50% + " +
+                    (
+                        settings.cardX *
+                        scaleX
+                    ) +
+                    "px)";
 
 
-    function playShine() {
-
-        if (
-            !shineOn ||
-            !shine
-        ) {
-            return;
-        }
-
-
-        shine.style.animation =
-            "none";
-
-
-        shine.style.opacity =
-            String(
-                shinePower
-            );
-
-
-        void shine.offsetWidth;
-
-
-        shine.style.animation =
-            "shineMove " +
-            shineSpeed +
-            "s ease-out";
-    }
-
-
-    /* =================================================
-       보잉
-    ================================================= */
-
-    const boingOn =
-        ${boingEnabled.checked ? "true" : "false"};
-
-    const boingPower =
-        ${Number(boingPower.value)};
-
-
-    function playBoing() {
-
-        if (!boingOn) {
-            return;
-        }
-
-
-        preview.style.setProperty(
-            "--boing",
-            String(
-                boingPower
-            )
-        );
-
-
-        preview.style.animation =
-            "none";
-
-
-        void preview.offsetWidth;
-
-
-        preview.style.animation =
-            "previewBoing .58s ease-out";
-    }
-
-
-    /* =================================================
-       하트
-    ================================================= */
-
-    const heartsOn =
-        ${heartEnabled.checked ? "true" : "false"};
-
-    const heartCount =
-        ${Number(heartCount.value)};
-
-    const heartSize =
-        ${Number(heartSize.value)};
-
-    const heartSpread =
-        ${Number(heartSpread.value)};
-
-
-    function createHearts() {
-
-        if (
-            !heartsOn ||
-            !hearts
-        ) {
-            return;
-        }
-
-
-        const symbols = [
-            "♥",
-            "♡",
-            "💗",
-            "💕"
-        ];
-
-
-        for (
-            let i = 0;
-            i < heartCount;
-            i++
-        ) {
-
-            const heart =
-                document.createElement(
-                    "span"
-                );
-
-
-            heart.className =
-                "heart";
-
-
-            heart.textContent =
-                symbols[
-                    Math.floor(
-                        Math.random() *
-                        symbols.length
-                    )
-                ];
-
-
-            const angle =
-                Math.random() *
-                Math.PI *
-                2;
-
-
-            const distance =
-                heartSpread *
-                (
-                    0.35 +
-                    Math.random() *
-                    0.65
-                );
-
-
-            const x =
-                Math.cos(angle) *
-                distance;
-
-
-            const y =
-                Math.sin(angle) *
-                distance;
-
-
-            const rotation =
-                -90 +
-                Math.random() *
-                180;
-
-
-            const actualSize =
-                heartSize *
-                (
-                    0.65 +
-                    Math.random() *
-                    0.75
-                );
-
-
-            heart.style.fontSize =
-                actualSize +
-                "px";
-
-
-            heart.style.color =
-                Math.random() > 0.5
-                    ? "#ff6fae"
-                    : "#ff9ac5";
-
-
-            heart.style.setProperty(
-                "--heart-x",
-                x + "px"
-            );
-
-
-            heart.style.setProperty(
-                "--heart-y",
-                y + "px"
-            );
-
-
-            heart.style.setProperty(
-                "--heart-r",
-                rotation + "deg"
-            );
-
-
-            heart.style.setProperty(
-                "--heart-duration",
-                (
-                    0.65 +
-                    Math.random() *
-                    0.55
-                ) +
-                "s"
-            );
-
-
-            hearts.appendChild(
-                heart
-            );
-
-
-            heart.addEventListener(
-                "animationend",
-                () => {
-                    heart.remove();
-                }
-            );
-        }
-    }
-
-
-    /* =================================================
-       ① → ②
-
-       CSS :hover가 담당합니다.
-       들어올 때 광택도 실행합니다.
-    ================================================= */
-
-    preview.addEventListener(
-        "mouseenter",
-        () => {
-
-            preview.classList.remove(
-                "clicked"
-            );
-
-            playShine();
-        }
-    );
-
-
-    /* =================================================
-       클릭 → ③ + 보잉 + 하트
-    ================================================= */
-
-    preview.addEventListener(
-        "click",
-        () => {
-
-            const photo2 =
-                previewPhotos[1];
-
-
-            const photo3 =
-                previewPhotos[2];
-
-
-            if (
-                !photo2 ||
-                !photo3 ||
-                !photo2.getAttribute(
-                    "src"
-                ) ||
-                !photo3.getAttribute(
-                    "src"
-                )
-            ) {
-                return;
+                card.style.top =
+                    "calc(50% + " +
+                    (
+                        settings.cardY *
+                        scaleY
+                    ) +
+                    "px)";
             }
 
 
-            preview.classList.add(
-                "clicked"
-            );
+            /* =========================================
+               카드 안쪽 사진
 
+               기존 편집 위치와 확대값은 유지하면서
+               SOOP 크기에 맞춰 이동값만 보정합니다.
 
-            playBoing();
+               이미지 자체는 최적화된 고해상도 원본을
+               그대로 사용합니다.
+            ========================================= */
 
-            createHearts();
+            if (innerImage) {
+
+                innerImage.style.transform =
+                    "translate(-50%, -50%) " +
+                    "translate(" +
+                    (
+                        settings.innerX *
+                        uniformScale
+                    ) +
+                    "px, " +
+                    (
+                        settings.innerY *
+                        uniformScale
+                    ) +
+                    "px) " +
+                    "scale(" +
+                    settings.innerZoom +
+                    ")";
+            }
         }
-    );
 
 
-    /* =================================================
-       마우스를 떼면 무조건 ①
-    ================================================= */
+        /* =============================================
+           클릭할 때마다 폴라로이드 재생
 
-    preview.addEventListener(
-        "mouseleave",
-        () => {
+           일반 모드 효과는 실행하지 않습니다.
+        ============================================= */
+
+        function replayPolaroid() {
 
             preview.classList.remove(
-                "clicked"
+                "playing"
             );
 
-            playShine();
+
+            void preview.offsetWidth;
+
+
+            preview.classList.add(
+                "playing"
+            );
         }
-    );
 
 
-    /* =================================================
-       최초 크기 계산
-    ================================================= */
+        preview.addEventListener(
+            "click",
+            replayPolaroid
+        );
 
-    updatePhotos();
+
+        /* =============================================
+           최초 배치
+        ============================================= */
+
+        updatePolaroidLayout();
 
 
-    window.addEventListener(
-        "resize",
-        updatePhotos
-    );
+        /*
+         * 이미지가 조금 늦게 로드되는 경우를 위해
+         * 한 번 더 계산합니다.
+         */
+
+        requestAnimationFrame(
+            updatePolaroidLayout
+        );
+
+
+        window.addEventListener(
+            "load",
+            updatePolaroidLayout
+        );
+
+
+        window.addEventListener(
+            "resize",
+            updatePolaroidLayout
+        );
+    }
 
 })();
 </script>
