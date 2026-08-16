@@ -1704,7 +1704,134 @@ replayPolaroid.addEventListener(
     playPolaroid
 );
 
+/* =========================================================
+   배포용 이미지 자동 최적화
+   - 편집/미리보기 원본은 그대로 유지
+   - 배포할 때만 긴 변 최대 2800px로 축소
+========================================================= */
 
+async function optimizeImageForDeploy(
+    dataUrl,
+    maxSize = 2800
+) {
+
+    if (!dataUrl) {
+        return dataUrl;
+    }
+
+    const img = new Image();
+
+    await new Promise(
+        (resolve, reject) => {
+
+            img.onload = resolve;
+
+            img.onerror = () =>
+                reject(
+                    new Error(
+                        "배포용 이미지를 읽지 못했습니다."
+                    )
+                );
+
+            img.src = dataUrl;
+        }
+    );
+
+
+    const originalWidth =
+        img.naturalWidth;
+
+    const originalHeight =
+        img.naturalHeight;
+
+
+    /*
+       이미 2800px 이하라면
+       해상도를 줄이지 않습니다.
+    */
+
+    if (
+        originalWidth <= maxSize &&
+        originalHeight <= maxSize
+    ) {
+        return dataUrl;
+    }
+
+
+    const scale =
+        Math.min(
+            maxSize / originalWidth,
+            maxSize / originalHeight
+        );
+
+
+    const width =
+        Math.round(
+            originalWidth * scale
+        );
+
+    const height =
+        Math.round(
+            originalHeight * scale
+        );
+
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.width =
+        width;
+
+    canvas.height =
+        height;
+
+
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
+
+
+    ctx.imageSmoothingEnabled =
+        true;
+
+    ctx.imageSmoothingQuality =
+        "high";
+
+
+    ctx.drawImage(
+        img,
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    /*
+       PNG로 유지합니다.
+
+       따라서 JPEG 품질을 강제로 낮추지 않고
+       우선 해상도만 최대 2800px로 줄입니다.
+    */
+
+    const optimized =
+        canvas.toDataURL(
+            "image/png"
+        );
+
+
+    console.log(
+        `배포 이미지 최적화:
+        ${originalWidth}×${originalHeight}
+        → ${width}×${height}`
+    );
+
+
+    return optimized;
+}
 /* =========================================================
    배포 전 검사
 ========================================================= */
@@ -1929,14 +2056,42 @@ exportButton.addEventListener("click", async () => {
          * 이미지가 data URL로 들어 있으므로 clone에도 그대로
          * 포함됩니다.
          */
-        clone.querySelectorAll("img").forEach((img, index) => {
-            const original =
-                source.querySelectorAll("img")[index];
+      /*
+ * 배포본에 들어가는 이미지만 최적화합니다.
+ * 원본 및 편집 화면의 이미지는 변경하지 않습니다.
+ *
+ * 긴 변이 2800px를 넘는 이미지만 축소되고,
+ * 2800px 이하 이미지는 그대로 사용합니다.
+ */
 
-            if (original && original.src) {
-                img.src = original.src;
-            }
-        });
+const cloneImages =
+    clone.querySelectorAll("img");
+
+const originalImages =
+    source.querySelectorAll("img");
+
+for (
+    let index = 0;
+    index < cloneImages.length;
+    index++
+) {
+    const img =
+        cloneImages[index];
+
+    const original =
+        originalImages[index];
+
+    if (
+        original &&
+        original.src
+    ) {
+        img.src =
+            await optimizeImageForDeploy(
+                original.src,
+                2800
+            );
+    }
+}
 
         /*
          * 현재 페이지의 CSS를 결과 페이지에도 넣습니다.
