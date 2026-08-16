@@ -882,18 +882,15 @@ normalPreview.addEventListener(
     "mouseleave",
     () => {
 
-        if (
-            normalPreview.classList.contains(
-                "clicked"
-            )
-        ) {
-            return;
-        }
+        // 마우스가 미리보기 밖으로 나가면
+        // 클릭 상태를 해제해서 무조건 ①로 복귀
+        normalPreview.classList.remove(
+            "clicked"
+        );
 
         playShine();
     }
 );
-
 
 /* =========================================================
    보잉
