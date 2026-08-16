@@ -1750,30 +1750,22 @@ async function optimizeImageForDeploy(
        해상도를 줄이지 않습니다.
     */
 
-    if (
-        originalWidth <= maxSize &&
-        originalHeight <= maxSize
-    ) {
-        return dataUrl;
-    }
+const scale =
+    Math.min(
+        1,
+        maxSize / originalWidth,
+        maxSize / originalHeight
+    );
 
+const width =
+    Math.round(
+        originalWidth * scale
+    );
 
-    const scale =
-        Math.min(
-            maxSize / originalWidth,
-            maxSize / originalHeight
-        );
-
-
-    const width =
-        Math.round(
-            originalWidth * scale
-        );
-
-    const height =
-        Math.round(
-            originalHeight * scale
-        );
+const height =
+    Math.round(
+        originalHeight * scale
+    );
 
 
     const canvas =
@@ -1817,10 +1809,11 @@ async function optimizeImageForDeploy(
        우선 해상도만 최대 2800px로 줄입니다.
     */
 
-    const optimized =
-        canvas.toDataURL(
-            "image/png"
-        );
+const optimized =
+    canvas.toDataURL(
+        "image/webp",
+        0.95
+    );
 
 
     console.log(
