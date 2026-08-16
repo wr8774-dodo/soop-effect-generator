@@ -3268,8 +3268,10 @@ ${clone.outerHTML}
                 method: "POST",
 
                 headers: {
-                    "Content-Type": "application/json"
-                },
+    "Content-Type": "application/json",
+    "Authorization":
+        `Bearer ${localStorage.getItem(AUTH_TOKEN_KEY) || ""}`
+},
 
                 body: JSON.stringify({
                     html,
