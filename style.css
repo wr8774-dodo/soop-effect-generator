@@ -1,0 +1,1494 @@
+/* =========================================================
+   SOOP 효과 생성기 - style.css
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #0f1014;
+    --panel: #191b22;
+    --panel2: #20232c;
+    --line: #343844;
+    --text: #f5f5f7;
+    --muted: #a8abb5;
+    --accent: #8067ff;
+    --accent-hover: #917cff;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 32px 18px 80px;
+
+    background:
+        radial-gradient(
+            circle at 50% -10%,
+            #25233a 0,
+            #121319 38%,
+            #0c0d11 100%
+        );
+
+    color: var(--text);
+
+    font-family:
+        Arial,
+        "Malgun Gothic",
+        "Apple SD Gothic Neo",
+        sans-serif;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+button {
+    color: inherit;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =========================================================
+   전체 앱
+========================================================= */
+
+.app {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   상단 제목
+========================================================= */
+
+.header {
+    margin-bottom: 26px;
+}
+
+.header h1 {
+    margin: 0 0 10px;
+
+    font-size: clamp(28px, 4vw, 42px);
+    letter-spacing: -1.5px;
+}
+
+.header p {
+    margin: 0;
+
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   패널
+========================================================= */
+
+.panel {
+    margin-bottom: 18px;
+    padding: 24px;
+
+    background:
+        rgba(25, 27, 34, .94);
+
+    border:
+        1px solid var(--line);
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 12px 35px rgba(0,0,0,.16);
+}
+
+.panel h2 {
+    margin:
+        0 0 20px;
+
+    font-size: 20px;
+}
+
+.panel h3 {
+    margin:
+        0 0 18px;
+
+    font-size: 17px;
+}
+
+
+/* =========================================================
+   공통 버튼
+========================================================= */
+
+.mode-buttons,
+.ratio-buttons,
+.photo-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.mode-button,
+.ratio-button,
+.photo-tab,
+.secondary-button,
+.primary-button {
+    appearance: none;
+
+    border:
+        1px solid #3b404c;
+
+    border-radius: 11px;
+
+    padding:
+        11px 18px;
+
+    background: #292d36;
+
+    cursor: pointer;
+
+    transition:
+        background .18s ease,
+        border-color .18s ease,
+        transform .18s ease;
+}
+
+.mode-button:hover,
+.ratio-button:hover,
+.photo-tab:hover,
+.secondary-button:hover {
+    background: #353a46;
+}
+
+.mode-button:active,
+.ratio-button:active,
+.photo-tab:active,
+.secondary-button:active,
+.primary-button:active {
+    transform: scale(.97);
+}
+
+.mode-button.active,
+.ratio-button.active,
+.photo-tab.active {
+    background:
+        var(--accent);
+
+    border-color:
+        var(--accent);
+}
+
+.primary-button {
+    width: 100%;
+
+    padding: 16px;
+
+    border-color:
+        var(--accent);
+
+    background:
+        var(--accent);
+
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.primary-button:hover {
+    background:
+        var(--accent-hover);
+}
+
+
+/* =========================================================
+   사진 업로드
+========================================================= */
+
+.upload-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 14px;
+}
+
+.upload-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    padding: 18px;
+
+    border:
+        1px solid #3a3e49;
+
+    border-radius: 13px;
+
+    background:
+        #15171c;
+}
+
+.upload-box strong {
+    font-size: 16px;
+}
+
+.upload-box span {
+    color:
+        var(--muted);
+
+    font-size: 13px;
+}
+
+.upload-box input[type="file"] {
+    width: 100%;
+
+    margin-top: 6px;
+
+    color:
+        #d8d9de;
+}
+
+.single-upload {
+    max-width: 500px;
+}
+
+
+/* =========================================================
+   편집 화면
+========================================================= */
+
+.editor-layout {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr) 280px;
+
+    gap: 22px;
+
+    margin-top: 18px;
+
+    align-items: start;
+}
+
+.editor-column {
+    min-width: 0;
+}
+
+.control-column {
+    padding: 18px;
+
+    background:
+        #14161b;
+
+    border:
+        1px solid #30343e;
+
+    border-radius: 14px;
+}
+
+
+/* =========================================================
+   크롭 영역
+========================================================= */
+
+.crop-area {
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 16 / 9;
+
+    overflow: hidden;
+
+    border-radius: 15px;
+
+    cursor: grab;
+
+    user-select: none;
+
+    touch-action: none;
+
+    background-color: #111318;
+
+    background-image:
+        linear-gradient(
+            45deg,
+            #1b1e24 25%,
+            transparent 25%
+        ),
+
+        linear-gradient(
+            -45deg,
+            #1b1e24 25%,
+            transparent 25%
+        ),
+
+        linear-gradient(
+            45deg,
+            transparent 75%,
+            #1b1e24 75%
+        ),
+
+        linear-gradient(
+            -45deg,
+            transparent 75%,
+            #1b1e24 75%
+        );
+
+    background-size:
+        24px 24px;
+
+    background-position:
+        0 0,
+        0 12px,
+        12px -12px,
+        -12px 0;
+}
+
+.crop-area:active {
+    cursor: grabbing;
+}
+
+.crop-area img {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    max-width: none;
+
+    display: block;
+
+    pointer-events: none;
+    user-select: none;
+
+    transform-origin:
+        center center;
+}
+
+.empty-message {
+    position: absolute;
+    inset: 0;
+
+    display: grid;
+    place-items: center;
+
+    color: #747986;
+
+    font-size: 14px;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   컨트롤
+========================================================= */
+
+.control {
+    display: block;
+
+    margin-bottom: 20px;
+}
+
+.control > span {
+    display: block;
+
+    margin-bottom: 9px;
+
+    color: #c8cad0;
+
+    font-size: 14px;
+}
+
+.control input[type="range"] {
+    width: 100%;
+
+    accent-color:
+        var(--accent);
+}
+
+.control input[type="text"] {
+    width: 100%;
+
+    padding: 11px 12px;
+
+    border:
+        1px solid #3c414d;
+
+    border-radius: 9px;
+
+    outline: none;
+
+    background:
+        #101217;
+
+    color:
+        white;
+}
+
+.control input[type="text"]:focus {
+    border-color:
+        var(--accent);
+}
+
+.switch-line {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    margin-bottom: 18px;
+
+    cursor: pointer;
+}
+
+.switch-line input {
+    width: 17px;
+    height: 17px;
+
+    accent-color:
+        var(--accent);
+}
+
+.secondary-button {
+    width: 100%;
+}
+
+.help {
+    margin:
+        14px 0 0;
+
+    color:
+        var(--muted);
+
+    font-size: 13px;
+
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   효과 카드
+========================================================= */
+
+.effect-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+}
+
+.effect-card {
+    padding: 18px;
+
+    background:
+        #14161b;
+
+    border:
+        1px solid #30343e;
+
+    border-radius: 14px;
+}
+
+
+/* =========================================================
+   미리보기 공통
+========================================================= */
+
+.preview-holder {
+    width:
+        min(850px, 100%);
+
+    margin:
+        0 auto;
+}
+
+
+/* =========================================================
+   일반 3장 미리보기
+========================================================= */
+
+.normal-preview {
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 16 / 9;
+
+    overflow: hidden;
+
+    border-radius: 18px;
+
+    background:
+        #090a0d;
+
+    cursor: pointer;
+
+    user-select: none;
+
+    transform-origin:
+        center center;
+}
+
+.preview-photo {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    max-width: none;
+
+    display: block;
+
+    opacity: 0;
+
+    pointer-events: none;
+    user-select: none;
+
+    transform-origin:
+        center center;
+
+    transition:
+        opacity .42s ease;
+}
+
+.preview-photo1 {
+    opacity: 1;
+}
+
+
+/* 마우스 올리기 */
+
+.normal-preview:hover
+.preview-photo1 {
+    opacity: 0;
+}
+
+.normal-preview:hover
+.preview-photo2 {
+    opacity: 1;
+}
+
+
+/* 클릭 후 ③ */
+
+.normal-preview.clicked
+.preview-photo1,
+
+.normal-preview.clicked
+.preview-photo2 {
+    opacity: 0;
+}
+
+.normal-preview.clicked
+.preview-photo3 {
+    opacity: 1;
+}
+
+
+/* =========================================================
+   광택
+========================================================= */
+
+.preview-shine {
+    position: absolute;
+
+    z-index: 20;
+
+    top: -70%;
+    left: -80%;
+
+    width: 30%;
+    height: 240%;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transform:
+        rotate(20deg);
+
+    filter:
+        blur(6px);
+
+    background:
+        linear-gradient(
+            90deg,
+
+            transparent 0%,
+
+            rgba(255,255,255,.04) 15%,
+
+            rgba(255,255,255,.22) 30%,
+
+            rgba(255,255,255,.65) 43%,
+
+            rgba(255,255,255,.96) 50%,
+
+            rgba(226,190,255,.62) 57%,
+
+            rgba(255,255,255,.16) 70%,
+
+            transparent 100%
+        );
+}
+
+@keyframes shineMove {
+
+    0% {
+        left: -80%;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    75% {
+        opacity: .9;
+    }
+
+    100% {
+        left: 140%;
+        opacity: 0;
+    }
+}
+
+
+/* =========================================================
+   보잉
+========================================================= */
+
+@keyframes previewBoing {
+
+    0% {
+        transform:
+            scale(1);
+    }
+
+    18% {
+        transform:
+            scaleX(
+                calc(1 - .04 * var(--boing))
+            )
+            scaleY(
+                calc(1 - .09 * var(--boing))
+            );
+    }
+
+    40% {
+        transform:
+            scaleX(
+                calc(1 + .035 * var(--boing))
+            )
+            scaleY(
+                calc(1 + .07 * var(--boing))
+            );
+    }
+
+    60% {
+        transform:
+            scaleX(
+                calc(1 - .015 * var(--boing))
+            )
+            scaleY(
+                calc(1 - .03 * var(--boing))
+            );
+    }
+
+    78% {
+        transform:
+            scaleX(
+                calc(1 + .01 * var(--boing))
+            )
+            scaleY(
+                calc(1 + .025 * var(--boing))
+            );
+    }
+
+    100% {
+        transform:
+            scale(1);
+    }
+}
+
+
+/* =========================================================
+   하트
+========================================================= */
+
+.preview-hearts {
+    position: absolute;
+
+    z-index: 60;
+
+    inset: 0;
+
+    overflow: hidden;
+
+    pointer-events: none;
+}
+
+.heart {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    font-family:
+        Arial,
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        sans-serif;
+
+    font-weight: bold;
+
+    line-height: 1;
+
+    pointer-events: none;
+    user-select: none;
+
+    will-change:
+        transform,
+        opacity;
+
+    animation:
+        heartPop
+        var(--heart-duration)
+        cubic-bezier(.17,.67,.28,1)
+        forwards;
+}
+
+@keyframes heartPop {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translate(-50%, -50%)
+            translate(0, 0)
+            scale(.25)
+            rotate(0deg);
+    }
+
+    12% {
+        opacity: 1;
+    }
+
+    30% {
+        transform:
+            translate(-50%, -50%)
+            translate(
+                calc(var(--heart-x) * .45),
+                calc(var(--heart-y) * .35)
+            )
+            scale(1.25)
+            rotate(
+                calc(var(--heart-r) * .4)
+            );
+    }
+
+    70% {
+        opacity: .9;
+    }
+
+    100% {
+        opacity: 0;
+
+        transform:
+            translate(-50%, -50%)
+            translate(
+                var(--heart-x),
+                var(--heart-y)
+            )
+            scale(.75)
+            rotate(
+                var(--heart-r)
+            );
+    }
+}
+
+
+/* =========================================================
+   폴라로이드 미리보기
+========================================================= */
+
+.polaroid-preview {
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 16 / 9;
+
+    overflow: hidden;
+
+    border-radius: 18px;
+
+    background:
+        #050505;
+
+    user-select: none;
+}
+
+.polaroid-background {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    max-width: none;
+
+    display: block;
+
+    pointer-events: none;
+
+    transform-origin:
+        center center;
+
+    filter:
+        blur(18px)
+        brightness(.68)
+        saturate(.75);
+}
+
+
+/* 어두운 가장자리 */
+
+.camera-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 4;
+
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            circle at center,
+
+            transparent 35%,
+
+            rgba(0,0,0,.15) 70%,
+
+            rgba(0,0,0,.45) 100%
+        );
+}
+
+
+/* =========================================================
+   카메라 UI
+========================================================= */
+
+.camera-ui {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 10;
+
+    pointer-events: none;
+}
+
+
+/* 네 모서리 */
+
+.camera-corner {
+    position: absolute;
+
+    width:
+        clamp(25px, 4vw, 52px);
+
+    height:
+        clamp(25px, 4vw, 52px);
+
+    opacity: .9;
+
+    filter:
+        drop-shadow(
+            0 1px 3px rgba(0,0,0,.35)
+        );
+}
+
+.camera-corner.tl {
+    top: 3.5%;
+    left: 3.5%;
+
+    border-top:
+        3px solid white;
+
+    border-left:
+        3px solid white;
+}
+
+.camera-corner.tr {
+    top: 3.5%;
+    right: 3.5%;
+
+    border-top:
+        3px solid white;
+
+    border-right:
+        3px solid white;
+}
+
+.camera-corner.bl {
+    bottom: 3.5%;
+    left: 3.5%;
+
+    border-bottom:
+        3px solid white;
+
+    border-left:
+        3px solid white;
+}
+
+.camera-corner.br {
+    right: 3.5%;
+    bottom: 3.5%;
+
+    border-right:
+        3px solid white;
+
+    border-bottom:
+        3px solid white;
+}
+
+
+/* REC */
+
+.rec-ui {
+    position: absolute;
+
+    top: 5%;
+    left: 5%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    color: white;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-weight: 700;
+
+    letter-spacing: 2px;
+
+    text-shadow:
+        0 1px 5px rgba(0,0,0,.5);
+}
+
+.rec-ui span {
+    width: 11px;
+    height: 11px;
+
+    border-radius: 50%;
+
+    background:
+        #ff3655;
+
+    box-shadow:
+        0 0 12px
+        rgba(255,54,85,.8);
+
+    animation:
+        recBlink 1s infinite;
+}
+
+@keyframes recBlink {
+
+    50% {
+        opacity: .25;
+    }
+}
+
+
+/* AUTO / ISO */
+
+.camera-info {
+    position: absolute;
+
+    top: 5%;
+    right: 5%;
+
+    color:
+        rgba(255,255,255,.95);
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-weight: 600;
+
+    letter-spacing: 1px;
+
+    text-shadow:
+        0 1px 5px rgba(0,0,0,.5);
+}
+
+
+/* 중앙 포커스 */
+
+.focus-box {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 90px;
+    height: 90px;
+
+    transform:
+        translate(-50%, -50%);
+
+    opacity: .65;
+
+    background:
+        linear-gradient(white,white)
+            left top / 22px 2px no-repeat,
+
+        linear-gradient(white,white)
+            left top / 2px 22px no-repeat,
+
+        linear-gradient(white,white)
+            right top / 22px 2px no-repeat,
+
+        linear-gradient(white,white)
+            right top / 2px 22px no-repeat,
+
+        linear-gradient(white,white)
+            left bottom / 22px 2px no-repeat,
+
+        linear-gradient(white,white)
+            left bottom / 2px 22px no-repeat,
+
+        linear-gradient(white,white)
+            right bottom / 22px 2px no-repeat,
+
+        linear-gradient(white,white)
+            right bottom / 2px 22px no-repeat;
+}
+
+
+/* =========================================================
+   플래시
+========================================================= */
+
+.camera-flash {
+    position: absolute;
+
+    z-index: 40;
+
+    inset: 0;
+
+    background:
+        white;
+
+    opacity: 0;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   폴라로이드 카드
+========================================================= */
+
+.polaroid-card {
+    position: absolute;
+
+    z-index: 30;
+
+    left: 50%;
+    top: 50%;
+
+    width: 55%;
+
+    padding:
+        14px
+        14px
+        58px;
+
+    background:
+        #f8f6ef;
+
+    box-shadow:
+        0 28px 70px
+        rgba(0,0,0,.55);
+
+    opacity: 0;
+
+    transform:
+        translate(-50%, -50%)
+        rotate(-2deg);
+
+    transform-origin:
+        center center;
+}
+
+.polaroid-image-window {
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 4 / 3;
+
+    overflow: hidden;
+
+    background:
+        #ddd;
+}
+
+.polaroid-image-window img {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    transform:
+        translate(-50%, -50%);
+
+    transform-origin:
+        center center;
+
+    user-select: none;
+    pointer-events: none;
+}
+
+.polaroid-caption {
+    position: absolute;
+
+    left: 10px;
+    right: 10px;
+    bottom: 18px;
+
+    overflow: hidden;
+
+    text-align: center;
+
+    color: #333;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+    font-family:
+        "Malgun Gothic",
+        sans-serif;
+
+    font-size: 18px;
+
+    letter-spacing: 1px;
+}
+
+
+/* =========================================================
+   폴라로이드 애니메이션
+========================================================= */
+
+.polaroid-preview.playing
+.polaroid-background {
+    animation:
+        polaroidFocus
+        1.7s
+        cubic-bezier(.2,.75,.25,1)
+        forwards;
+}
+
+@keyframes polaroidFocus {
+
+    0% {
+        filter:
+            blur(20px)
+            brightness(.60)
+            saturate(.65);
+
+        transform:
+            translate(-50%, -50%)
+            scale(1.10);
+    }
+
+    55% {
+        filter:
+            blur(8px)
+            brightness(.72)
+            saturate(.82);
+    }
+
+    100% {
+        filter:
+            blur(1px)
+            brightness(.82)
+            saturate(.92);
+
+        transform:
+            translate(-50%, -50%)
+            scale(1.03);
+    }
+}
+
+
+.polaroid-preview.playing
+.focus-box {
+    animation:
+        focusBoxMove
+        1.6s
+        ease-out
+        forwards;
+}
+
+@keyframes focusBoxMove {
+
+    0% {
+        transform:
+            translate(-50%, -50%)
+            scale(1.35);
+
+        opacity: .25;
+    }
+
+    65% {
+        transform:
+            translate(-50%, -50%)
+            scale(.92);
+
+        opacity: .85;
+    }
+
+    100% {
+        transform:
+            translate(-50%, -50%)
+            scale(1);
+
+        opacity: .65;
+    }
+}
+
+
+.polaroid-preview.playing
+.camera-flash {
+    animation:
+        cameraFlash
+        .42s
+        1.65s
+        ease-out
+        forwards;
+}
+
+@keyframes cameraFlash {
+
+    0% {
+        opacity: 0;
+    }
+
+    18% {
+        opacity: .95;
+    }
+
+    38% {
+        opacity: .25;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+
+.polaroid-preview.playing
+.polaroid-card {
+    animation:
+        polaroidPop
+        1.05s
+        1.78s
+        cubic-bezier(.18,1.15,.32,1)
+        forwards;
+}
+
+@keyframes polaroidPop {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translate(-50%, -30%)
+            rotate(-10deg)
+            scale(.48);
+    }
+
+    35% {
+        opacity: 1;
+
+        transform:
+            translate(-50%, -53%)
+            rotate(4deg)
+            scale(1.08);
+    }
+
+    58% {
+        transform:
+            translate(-50%, -48%)
+            rotate(-3deg)
+            scale(.96);
+    }
+
+    76% {
+        transform:
+            translate(-50%, -50%)
+            rotate(1.5deg)
+            scale(1.025);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translate(-50%, -50%)
+            rotate(
+                var(--final-rotation, -2deg)
+            )
+            scale(1);
+    }
+}
+
+
+/* =========================================================
+   다시보기
+========================================================= */
+
+.replay-button {
+    width: auto;
+
+    display: block;
+
+    margin:
+        18px auto 0;
+}
+
+
+/* =========================================================
+   배포 결과
+========================================================= */
+
+.export-panel {
+    margin-top: 28px;
+}
+
+.export-result {
+    margin-top: 20px;
+
+    padding: 18px;
+
+    background:
+        #121419;
+
+    border:
+        1px solid #30343e;
+
+    border-radius: 13px;
+}
+
+.export-result h3 {
+    margin-top: 0;
+}
+
+#iframeCode {
+    width: 100%;
+
+    min-height: 150px;
+
+    margin:
+        4px 0 12px;
+
+    padding: 12px;
+
+    resize: vertical;
+
+    border:
+        1px solid #3c414d;
+
+    border-radius: 10px;
+
+    outline: none;
+
+    background:
+        #090a0d;
+
+    color:
+        #dfe1e6;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   반응형
+========================================================= */
+
+@media (max-width: 850px) {
+
+    body {
+        padding:
+            18px 10px 60px;
+    }
+
+    .panel {
+        padding: 18px;
+    }
+
+    .upload-grid,
+    .effect-grid,
+    .editor-layout {
+        grid-template-columns:
+            1fr;
+    }
+
+    .control-column {
+        padding: 15px;
+    }
+}
+
+
+@media (max-width: 520px) {
+
+    .mode-buttons,
+    .ratio-buttons,
+    .photo-tabs {
+        display: grid;
+
+        grid-template-columns:
+            1fr;
+    }
+
+    .mode-button,
+    .ratio-button,
+    .photo-tab {
+        width: 100%;
+    }
+
+    .panel {
+        border-radius: 14px;
+    }
+
+}

@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>SOOP 효과 생성기</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- =====================================================
+         제목
+    ====================================================== -->
+
+    <header class="header">
+
+        <h1>SOOP 효과 생성기</h1>
+
+        <p>
+            사진을 넣고 효과를 설정한 뒤
+            SOOP 게시판용 결과물을 만들 수 있습니다.
+        </p>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         1. 효과 선택
+    ====================================================== -->
+
+    <section class="panel">
+
+        <h2>1. 효과 선택</h2>
+
+        <div class="mode-buttons">
+
+            <button
+                type="button"
+                class="mode-button active"
+                data-mode="normal"
+            >
+                ✨ 일반 3장 효과
+            </button>
+
+            <button
+                type="button"
+                class="mode-button"
+                data-mode="polaroid"
+            >
+                📷 폴라로이드 효과
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         2. 비율
+    ====================================================== -->
+
+    <section class="panel">
+
+        <h2>2. 출력 비율</h2>
+
+        <div class="ratio-buttons">
+
+            <button
+                type="button"
+                class="ratio-button active"
+                data-ratio="16/9"
+            >
+                16:9
+            </button>
+
+            <button
+                type="button"
+                class="ratio-button"
+                data-ratio="4/5"
+            >
+                4:5
+            </button>
+
+            <button
+                type="button"
+                class="ratio-button"
+                data-ratio="2/3"
+            >
+                2:3
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         일반 3장 효과
+    ====================================================== -->
+
+    <div id="normalMode">
+
+
+        <!-- 사진 선택 -->
+
+        <section class="panel">
+
+            <h2>3. 사진 3장 선택</h2>
+
+            <div class="upload-grid">
+
+
+                <label class="upload-box">
+
+                    <strong>
+                        ① 기본 사진
+                    </strong>
+
+                    <span>
+                        평소에 보이는 사진
+                    </span>
+
+                    <input
+                        id="normalPhoto1"
+                        type="file"
+                        accept="image/*"
+                    >
+
+                </label>
+
+
+                <label class="upload-box">
+
+                    <strong>
+                        ② 마우스 오버
+                    </strong>
+
+                    <span>
+                        마우스를 올렸을 때
+                    </span>
+
+                    <input
+                        id="normalPhoto2"
+                        type="file"
+                        accept="image/*"
+                    >
+
+                </label>
+
+
+                <label class="upload-box">
+
+                    <strong>
+                        ③ 클릭 사진
+                    </strong>
+
+                    <span>
+                        클릭했을 때
+                    </span>
+
+                    <input
+                        id="normalPhoto3"
+                        type="file"
+                        accept="image/*"
+                    >
+
+                </label>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- 사진 영역 조절 -->
+
+        <section class="panel">
+
+            <h2>4. 사진 영역 조절</h2>
+
+
+            <div class="photo-tabs">
+
+                <button
+                    type="button"
+                    class="photo-tab active"
+                    data-photo="0"
+                >
+                    ① 사진
+                </button>
+
+                <button
+                    type="button"
+                    class="photo-tab"
+                    data-photo="1"
+                >
+                    ② 사진
+                </button>
+
+                <button
+                    type="button"
+                    class="photo-tab"
+                    data-photo="2"
+                >
+                    ③ 사진
+                </button>
+
+            </div>
+
+
+
+            <div class="editor-layout">
+
+
+                <div class="editor-column">
+
+                    <div
+                        id="normalCropArea"
+                        class="crop-area"
+                    >
+
+                        <img
+                            id="normalCropImage"
+                            alt=""
+                            draggable="false"
+                        >
+
+                        <div class="empty-message">
+                            사진을 먼저 선택해주세요.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="control-column">
+
+                    <label class="control">
+
+                        <span>
+                            확대 / 축소
+                        </span>
+
+                        <input
+                            id="normalZoom"
+                            type="range"
+                            min="1"
+                            max="3"
+                            step="0.01"
+                            value="1"
+                        >
+
+                    </label>
+
+
+                    <button
+                        type="button"
+                        id="normalReset"
+                        class="secondary-button"
+                    >
+                        위치 초기화
+                    </button>
+
+
+                    <p class="help">
+                        사진을 마우스로 잡고 움직여
+                        원하는 부분을 맞출 수 있습니다.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- 효과 설정 -->
+
+        <section class="panel">
+
+            <h2>5. 효과 설정</h2>
+
+
+            <div class="effect-grid">
+
+
+                <!-- 광택 -->
+
+                <div class="effect-card">
+
+                    <h3>✨ 광택</h3>
+
+
+                    <label class="switch-line">
+
+                        <input
+                            id="shineEnabled"
+                            type="checkbox"
+                            checked
+                        >
+
+                        <span>
+                            광택 사용
+                        </span>
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            광택 세기
+                        </span>
+
+                        <input
+                            id="shinePower"
+                            type="range"
+                            min="0.1"
+                            max="1"
+                            step="0.05"
+                            value="0.8"
+                        >
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            광택 속도
+                        </span>
+
+                        <input
+                            id="shineSpeed"
+                            type="range"
+                            min="0.2"
+                            max="2"
+                            step="0.05"
+                            value="0.7"
+                        >
+
+                    </label>
+
+                </div>
+
+
+
+                <!-- 보잉 -->
+
+                <div class="effect-card">
+
+                    <h3>💫 보잉</h3>
+
+
+                    <label class="switch-line">
+
+                        <input
+                            id="boingEnabled"
+                            type="checkbox"
+                            checked
+                        >
+
+                        <span>
+                            보잉 사용
+                        </span>
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            보잉 강도
+                        </span>
+
+                        <input
+                            id="boingPower"
+                            type="range"
+                            min="0.3"
+                            max="2"
+                            step="0.05"
+                            value="1"
+                        >
+
+                    </label>
+
+                </div>
+
+
+
+                <!-- 하트 -->
+
+                <div class="effect-card">
+
+                    <h3>💗 하트</h3>
+
+
+                    <label class="switch-line">
+
+                        <input
+                            id="heartEnabled"
+                            type="checkbox"
+                            checked
+                        >
+
+                        <span>
+                            하트 사용
+                        </span>
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            하트 개수
+                        </span>
+
+                        <input
+                            id="heartCount"
+                            type="range"
+                            min="1"
+                            max="40"
+                            step="1"
+                            value="14"
+                        >
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            하트 크기
+                        </span>
+
+                        <input
+                            id="heartSize"
+                            type="range"
+                            min="10"
+                            max="80"
+                            step="1"
+                            value="32"
+                        >
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            하트 퍼짐
+                        </span>
+
+                        <input
+                            id="heartSpread"
+                            type="range"
+                            min="30"
+                            max="500"
+                            step="5"
+                            value="200"
+                        >
+
+                    </label>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- 일반 미리보기 -->
+
+        <section class="panel">
+
+            <h2>6. 실시간 미리보기</h2>
+
+            <p class="help">
+                마우스를 올려 ② 사진을 확인하고,
+                클릭해서 ② ↔ ③ 전환 효과를 확인하세요.
+            </p>
+
+
+            <div class="preview-holder">
+
+                <div
+                    id="normalPreview"
+                    class="normal-preview"
+                >
+
+                    <img
+                        class="preview-photo preview-photo1"
+                        alt=""
+                        draggable="false"
+                    >
+
+                    <img
+                        class="preview-photo preview-photo2"
+                        alt=""
+                        draggable="false"
+                    >
+
+                    <img
+                        class="preview-photo preview-photo3"
+                        alt=""
+                        draggable="false"
+                    >
+
+
+                    <div class="preview-shine"></div>
+
+                    <div class="preview-hearts"></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         폴라로이드 효과
+    ====================================================== -->
+
+    <div
+        id="polaroidMode"
+        class="hidden"
+    >
+
+
+        <!-- 폴라로이드 사진 -->
+
+        <section class="panel">
+
+            <h2>3. 폴라로이드 사진 선택</h2>
+
+
+            <label class="upload-box single-upload">
+
+                <strong>
+                    📷 사진 선택
+                </strong>
+
+                <span>
+                    배경과 폴라로이드에 사용할 사진입니다.
+                </span>
+
+                <input
+                    id="polaroidPhoto"
+                    type="file"
+                    accept="image/*"
+                >
+
+            </label>
+
+        </section>
+
+
+
+        <!-- 폴라로이드 영역 -->
+
+        <section class="panel">
+
+            <h2>4. 배경 영역 조절</h2>
+
+
+            <div class="editor-layout">
+
+
+                <div class="editor-column">
+
+                    <div
+                        id="polaroidCropArea"
+                        class="crop-area"
+                    >
+
+                        <img
+                            id="polaroidCropImage"
+                            alt=""
+                            draggable="false"
+                        >
+
+                        <div class="empty-message">
+                            사진을 먼저 선택해주세요.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="control-column">
+
+                    <label class="control">
+
+                        <span>
+                            배경 확대 / 축소
+                        </span>
+
+                        <input
+                            id="polaroidBackgroundZoom"
+                            type="range"
+                            min="1"
+                            max="3"
+                            step="0.01"
+                            value="1"
+                        >
+
+                    </label>
+
+
+                    <button
+                        type="button"
+                        id="polaroidBackgroundReset"
+                        class="secondary-button"
+                    >
+                        배경 위치 초기화
+                    </button>
+
+
+                    <p class="help">
+                        배경 사진을 마우스로 직접 움직여
+                        원하는 영역을 선택할 수 있습니다.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- 폴라로이드 설정 -->
+
+        <section class="panel">
+
+            <h2>5. 폴라로이드 설정</h2>
+
+
+            <div class="effect-grid">
+
+
+                <!-- 카드 -->
+
+                <div class="effect-card">
+
+                    <h3>🖼 폴라로이드</h3>
+
+
+                    <label class="control">
+
+                        <span>
+                            폴라로이드 크기
+                        </span>
+
+                        <input
+                            id="polaroidSize"
+                            type="range"
+                            min="25"
+                            max="90"
+                            step="1"
+                            value="55"
+                        >
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            기울기
+                        </span>
+
+                        <input
+                            id="polaroidRotation"
+                            type="range"
+                            min="-15"
+                            max="15"
+                            step="0.5"
+                            value="-2"
+                        >
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            폴라로이드 안쪽 사진 확대
+                        </span>
+
+                        <input
+                            id="polaroidInnerZoom"
+                            type="range"
+                            min="1"
+                            max="3"
+                            step="0.01"
+                            value="1"
+                        >
+
+                    </label>
+
+
+                    <p class="help">
+                        미리보기에서 폴라로이드 사진을
+                        직접 드래그해 위치를 조절할 수 있습니다.
+                    </p>
+
+                </div>
+
+
+
+                <!-- 문구 -->
+
+                <div class="effect-card">
+
+                    <h3>✏️ 문구</h3>
+
+
+                    <label class="switch-line">
+
+                        <input
+                            id="captionEnabled"
+                            type="checkbox"
+                            checked
+                        >
+
+                        <span>
+                            문구 표시
+                        </span>
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            폴라로이드 문구
+                        </span>
+
+                        <input
+                            id="captionText"
+                            type="text"
+                            value="PHOTO MEMORY"
+                            maxlength="40"
+                        >
+
+                    </label>
+
+
+                    <label class="control">
+
+                        <span>
+                            글씨 크기
+                        </span>
+
+                        <input
+                            id="captionSize"
+                            type="range"
+                            min="10"
+                            max="40"
+                            step="1"
+                            value="18"
+                        >
+
+                    </label>
+
+                </div>
+
+
+
+                <!-- 카메라 UI -->
+
+                <div class="effect-card">
+
+                    <h3>📹 카메라 UI</h3>
+
+
+                    <label class="switch-line">
+
+                        <input
+                            id="cameraUiEnabled"
+                            type="checkbox"
+                            checked
+                        >
+
+                        <span>
+                            카메라 UI 표시
+                        </span>
+
+                    </label>
+
+
+                    <label class="switch-line">
+
+                        <input
+                            id="focusEnabled"
+                            type="checkbox"
+                            checked
+                        >
+
+                        <span>
+                            중앙 포커스 표시
+                        </span>
+
+                    </label>
+
+
+                    <label class="switch-line">
+
+                        <input
+                            id="flashEnabled"
+                            type="checkbox"
+                            checked
+                        >
+
+                        <span>
+                            플래시 효과
+                        </span>
+
+                    </label>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- 폴라로이드 미리보기 -->
+
+        <section class="panel">
+
+            <h2>6. 실시간 미리보기</h2>
+
+
+            <div class="preview-holder">
+
+
+                <div
+                    id="polaroidPreview"
+                    class="polaroid-preview"
+                >
+
+
+                    <!-- 배경 -->
+
+                    <img
+                        id="polaroidPreviewBackground"
+                        class="polaroid-background"
+                        alt=""
+                        draggable="false"
+                    >
+
+
+                    <div class="camera-overlay"></div>
+
+
+
+                    <!-- 카메라 UI -->
+
+                    <div
+                        id="cameraUI"
+                        class="camera-ui"
+                    >
+
+                        <div class="camera-corner tl"></div>
+                        <div class="camera-corner tr"></div>
+                        <div class="camera-corner bl"></div>
+                        <div class="camera-corner br"></div>
+
+
+                        <div class="rec-ui">
+
+                            <span></span>
+
+                            REC
+
+                        </div>
+
+
+                        <div class="camera-info">
+                            AUTO&nbsp;&nbsp; ISO 200
+                        </div>
+
+
+                        <div class="focus-box"></div>
+
+                    </div>
+
+
+
+                    <!-- 플래시 -->
+
+                    <div class="camera-flash"></div>
+
+
+
+                    <!-- 폴라로이드 -->
+
+                    <div
+                        id="polaroidCard"
+                        class="polaroid-card"
+                    >
+
+
+                        <div class="polaroid-image-window">
+
+                            <img
+                                id="polaroidInnerImage"
+                                alt=""
+                                draggable="false"
+                            >
+
+                        </div>
+
+
+                        <div
+                            id="polaroidCaption"
+                            class="polaroid-caption"
+                        >
+                            PHOTO MEMORY
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+
+
+
+                <button
+                    type="button"
+                    id="replayPolaroid"
+                    class="secondary-button replay-button"
+                >
+                    ▶ 다시 재생
+                </button>
+
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         7. SOOP용 만들기
+         ★ GitHub 입력 부분 삭제
+    ====================================================== -->
+
+    <section class="panel export-panel">
+
+        <h2>7. SOOP용 만들기</h2>
+
+
+        <p class="help">
+            모든 설정을 완료한 뒤 버튼을 누르면
+            결과물을 자동으로 업로드하고
+            SOOP용 코드를 만들어줍니다.
+        </p>
+
+
+        <button
+            type="button"
+            id="exportButton"
+            class="primary-button"
+        >
+            🚀 SOOP용 만들기
+        </button>
+
+
+
+        <!-- 업로드 상태 -->
+
+        <div
+            id="uploadStatus"
+            class="export-result hidden"
+        >
+
+            <h3 id="uploadStatusTitle">
+                준비 중...
+            </h3>
+
+            <p
+                id="uploadStatusText"
+                class="help"
+            >
+                결과물을 준비하고 있습니다.
+            </p>
+
+        </div>
+
+
+
+        <!-- 최종 결과 -->
+
+        <div
+            id="exportResult"
+            class="export-result hidden"
+        >
+
+            <h3>
+                ✓ 완성되었습니다
+            </h3>
+
+
+            <p class="help">
+                아래 코드를 복사해서
+                SOOP 게시글에 붙여넣으세요.
+            </p>
+
+
+            <textarea
+                id="iframeCode"
+                readonly
+                rows="7"
+            ></textarea>
+
+
+            <button
+                type="button"
+                id="copyIframe"
+                class="secondary-button"
+            >
+                📋 SOOP 코드 복사
+            </button>
+
+        </div>
+
+
+    </section>
+
+
+</div>
+
+
+
+<!-- =========================================================
+     JavaScript
+========================================================= -->
+
+<script src="app.js"></script>
+
+
+</body>
+</html>
