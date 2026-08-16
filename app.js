@@ -2122,9 +2122,10 @@ const html = `<!DOCTYPE html>
 <style>
 ${css}
 
-/* =========================================
-   배포 페이지 전용 초기화
-========================================= */
+
+/* =====================================================
+   배포 페이지 전용
+===================================================== */
 
 html,
 body {
@@ -2139,14 +2140,11 @@ body {
     background: transparent !important;
 }
 
+
 body {
     position: relative;
 }
 
-
-/* =========================================
-   SOOP iframe 전체 영역
-========================================= */
 
 #soop-effect-root {
     position: absolute;
@@ -2165,9 +2163,9 @@ body {
 }
 
 
-/* =========================================
-   생성기 미리보기를 iframe에 꽉 맞춤
-========================================= */
+/* =====================================================
+   미리보기 전체를 iframe 크기에 맞춤
+===================================================== */
 
 #soop-effect-root > .normal-preview,
 #soop-effect-root > .polaroid-preview {
@@ -2185,33 +2183,37 @@ body {
     margin: 0 !important;
     padding: 0 !important;
 
-    aspect-ratio: ${ratioWidth} / ${ratioHeight} !important;
+    border-radius: 0 !important;
+
+    aspect-ratio:
+        ${ratioWidth} / ${ratioHeight} !important;
 
     overflow: hidden !important;
 }
 
 
-/* =========================================
-   일반 모드 사진
-========================================= */
+/* =====================================================
+   일반 사진
+===================================================== */
 
-#soop-effect-root .preview-photo1,
-#soop-effect-root .preview-photo2,
-#soop-effect-root .preview-photo3 {
+#soop-effect-root .preview-photo {
 
-    position: absolute;
+    position: absolute !important;
 
-    left: 50%;
-    top: 50%;
+    left: 50% !important;
+    top: 50% !important;
 
-    max-width: none;
-    max-height: none;
+    max-width: none !important;
+    max-height: none !important;
+
+    transform-origin:
+        center center !important;
+
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-
-/* =========================================
-   SOOP에서 불필요한 편집 UI 방지
-========================================= */
 
 #soop-effect-root {
     user-select: none;
@@ -2232,19 +2234,454 @@ ${clone.outerHTML}
 <script>
 (() => {
 
-    const preview =
-        document.querySelector(
-            "#soop-effect-root .normal-preview"
+    const root =
+        document.getElementById(
+            "soop-effect-root"
         );
+
+
+    const preview =
+        root.querySelector(
+            ".normal-preview"
+        );
+
+
+    /*
+     * 폴라로이드 모드라면
+     * 일반 사진용 코드는 실행하지 않습니다.
+     */
 
     if (!preview) {
         return;
     }
 
 
-    /* =====================================
-       마우스를 올리면 ②
-    ===================================== */
+    const photos = [
+        ${JSON.stringify({
+            x: state.normal.photos[0].x,
+            y: state.normal.photos[0].y,
+            zoom: state.normal.photos[0].zoom
+        })},
+
+        ${JSON.stringify({
+            x: state.normal.photos[1].x,
+            y: state.normal.photos[1].y,
+            zoom: state.normal.photos[1].zoom
+        })},
+
+        ${JSON.stringify({
+            x: state.normal.photos[2].x,
+            y: state.normal.photos[2].y,
+            zoom: state.normal.photos[2].zoom
+        })}
+    ];
+
+
+    const editorWidth =
+        ${Math.max(normalPreview.clientWidth, 1)};
+
+    const editorHeight =
+        ${Math.max(normalPreview.clientHeight, 1)};
+
+
+    const previewPhotos = [
+        preview.querySelector(
+            ".preview-photo1"
+        ),
+
+        preview.querySelector(
+            ".preview-photo2"
+        ),
+
+        preview.querySelector(
+            ".preview-photo3"
+        )
+    ];
+
+
+    const shine =
+        preview.querySelector(
+            ".preview-shine"
+        );
+
+
+    const hearts =
+        preview.querySelector(
+            ".preview-hearts"
+        );
+
+
+    /* =================================================
+       사진 크기 다시 계산
+
+       SOOP에서 iframe 크기가 달라져도
+       사진이 항상 영역을 꽉 채웁니다.
+    ================================================= */
+
+    function updatePhotos() {
+
+        const cw =
+            preview.clientWidth;
+
+        const ch =
+            preview.clientHeight;
+
+
+        if (!cw || !ch) {
+            return;
+        }
+
+
+        const scaleX =
+            cw / editorWidth;
+
+        const scaleY =
+            ch / editorHeight;
+
+
+        previewPhotos.forEach(
+            (img, index) => {
+
+                if (
+                    !img ||
+                    !img.src
+                ) {
+                    return;
+                }
+
+
+                const update = () => {
+
+                    if (
+                        !img.naturalWidth ||
+                        !img.naturalHeight
+                    ) {
+                        return;
+                    }
+
+
+                    const photo =
+                        photos[index];
+
+
+                    const scale =
+                        Math.max(
+                            cw /
+                                img.naturalWidth,
+
+                            ch /
+                                img.naturalHeight
+                        ) *
+                        photo.zoom;
+
+
+                    const width =
+                        img.naturalWidth *
+                        scale;
+
+
+                    const height =
+                        img.naturalHeight *
+                        scale;
+
+
+                    img.style.width =
+                        width + "px";
+
+
+                    img.style.height =
+                        height + "px";
+
+
+                    img.style.left =
+                        "50%";
+
+
+                    img.style.top =
+                        "50%";
+
+
+                    img.style.transform =
+                        "translate(-50%, -50%) " +
+                        "translate(" +
+                        (
+                            photo.x *
+                            scaleX
+                        ) +
+                        "px, " +
+                        (
+                            photo.y *
+                            scaleY
+                        ) +
+                        "px)";
+                };
+
+
+                if (
+                    img.complete &&
+                    img.naturalWidth
+                ) {
+
+                    update();
+
+                } else {
+
+                    img.addEventListener(
+                        "load",
+                        update,
+                        {
+                            once: true
+                        }
+                    );
+                }
+            }
+        );
+    }
+
+
+    /* =================================================
+       광택
+    ================================================= */
+
+    const shineOn =
+        ${shineEnabled.checked ? "true" : "false"};
+
+    const shinePower =
+        ${Number(shinePower.value)};
+
+    const shineSpeed =
+        ${Number(shineSpeed.value)};
+
+
+    function playShine() {
+
+        if (
+            !shineOn ||
+            !shine
+        ) {
+            return;
+        }
+
+
+        shine.style.animation =
+            "none";
+
+
+        shine.style.opacity =
+            String(
+                shinePower
+            );
+
+
+        void shine.offsetWidth;
+
+
+        shine.style.animation =
+            "shineMove " +
+            shineSpeed +
+            "s ease-out";
+    }
+
+
+    /* =================================================
+       보잉
+    ================================================= */
+
+    const boingOn =
+        ${boingEnabled.checked ? "true" : "false"};
+
+    const boingPower =
+        ${Number(boingPower.value)};
+
+
+    function playBoing() {
+
+        if (!boingOn) {
+            return;
+        }
+
+
+        preview.style.setProperty(
+            "--boing",
+            String(
+                boingPower
+            )
+        );
+
+
+        preview.style.animation =
+            "none";
+
+
+        void preview.offsetWidth;
+
+
+        preview.style.animation =
+            "previewBoing .58s ease-out";
+    }
+
+
+    /* =================================================
+       하트
+    ================================================= */
+
+    const heartsOn =
+        ${heartEnabled.checked ? "true" : "false"};
+
+    const heartCount =
+        ${Number(heartCount.value)};
+
+    const heartSize =
+        ${Number(heartSize.value)};
+
+    const heartSpread =
+        ${Number(heartSpread.value)};
+
+
+    function createHearts() {
+
+        if (
+            !heartsOn ||
+            !hearts
+        ) {
+            return;
+        }
+
+
+        const symbols = [
+            "♥",
+            "♡",
+            "💗",
+            "💕"
+        ];
+
+
+        for (
+            let i = 0;
+            i < heartCount;
+            i++
+        ) {
+
+            const heart =
+                document.createElement(
+                    "span"
+                );
+
+
+            heart.className =
+                "heart";
+
+
+            heart.textContent =
+                symbols[
+                    Math.floor(
+                        Math.random() *
+                        symbols.length
+                    )
+                ];
+
+
+            const angle =
+                Math.random() *
+                Math.PI *
+                2;
+
+
+            const distance =
+                heartSpread *
+                (
+                    0.35 +
+                    Math.random() *
+                    0.65
+                );
+
+
+            const x =
+                Math.cos(angle) *
+                distance;
+
+
+            const y =
+                Math.sin(angle) *
+                distance;
+
+
+            const rotation =
+                -90 +
+                Math.random() *
+                180;
+
+
+            const actualSize =
+                heartSize *
+                (
+                    0.65 +
+                    Math.random() *
+                    0.75
+                );
+
+
+            heart.style.fontSize =
+                actualSize +
+                "px";
+
+
+            heart.style.color =
+                Math.random() > 0.5
+                    ? "#ff6fae"
+                    : "#ff9ac5";
+
+
+            heart.style.setProperty(
+                "--heart-x",
+                x + "px"
+            );
+
+
+            heart.style.setProperty(
+                "--heart-y",
+                y + "px"
+            );
+
+
+            heart.style.setProperty(
+                "--heart-r",
+                rotation + "deg"
+            );
+
+
+            heart.style.setProperty(
+                "--heart-duration",
+                (
+                    0.65 +
+                    Math.random() *
+                    0.55
+                ) +
+                "s"
+            );
+
+
+            hearts.appendChild(
+                heart
+            );
+
+
+            heart.addEventListener(
+                "animationend",
+                () => {
+                    heart.remove();
+                }
+            );
+        }
+    }
+
+
+    /* =================================================
+       ① → ②
+
+       CSS :hover가 담당합니다.
+       들어올 때 광택도 실행합니다.
+    ================================================= */
 
     preview.addEventListener(
         "mouseenter",
@@ -2253,47 +2690,57 @@ ${clone.outerHTML}
             preview.classList.remove(
                 "clicked"
             );
+
+            playShine();
         }
     );
 
 
-    /* =====================================
-       클릭하면 ③
-    ===================================== */
+    /* =================================================
+       클릭 → ③ + 보잉 + 하트
+    ================================================= */
 
     preview.addEventListener(
         "click",
         () => {
 
             const photo2 =
-                preview.querySelector(
-                    ".preview-photo2"
-                );
+                previewPhotos[1];
+
 
             const photo3 =
-                preview.querySelector(
-                    ".preview-photo3"
-                );
+                previewPhotos[2];
+
 
             if (
                 !photo2 ||
                 !photo3 ||
-                !photo2.getAttribute("src") ||
-                !photo3.getAttribute("src")
+                !photo2.getAttribute(
+                    "src"
+                ) ||
+                !photo3.getAttribute(
+                    "src"
+                )
             ) {
                 return;
             }
 
+
             preview.classList.add(
                 "clicked"
             );
+
+
+            playBoing();
+
+            createHearts();
         }
     );
 
 
-    /* =====================================
+    /* =================================================
        마우스를 떼면 무조건 ①
-    ===================================== */
+    ================================================= */
 
     preview.addEventListener(
         "mouseleave",
@@ -2302,7 +2749,22 @@ ${clone.outerHTML}
             preview.classList.remove(
                 "clicked"
             );
+
+            playShine();
         }
+    );
+
+
+    /* =================================================
+       최초 크기 계산
+    ================================================= */
+
+    updatePhotos();
+
+
+    window.addEventListener(
+        "resize",
+        updatePhotos
     );
 
 })();
