@@ -10,14 +10,14 @@
   <div id="contentTab" class="tab-page active stack">
    <label class="field"><span><b>▧ 장면 사진</b><small>JPG, PNG, WebP</small></span><div id="photoDrop" class="photo-drop"><input id="photoInput" type="file" accept="image/*"><div>＋<b>사진을 업로드하세요</b><small>클릭하여 파일 선택</small></div></div></label>
    <div class="two"><label>화자 이름<input id="speaker"></label><label>장면 ID<input id="sceneId" disabled></label></div>
-   <label class="field">대사<textarea id="dialogue" rows="5"></textarea></label>
+   <label class="field">대사<textarea id="dialogue" rows="7" placeholder="대사가 여러 개면 대사 사이에 빈 줄을 한 줄 넣으세요."></textarea><small>빈 줄로 구분한 대사는 ‘다음’ 버튼으로 순서대로 표시됩니다.</small></label>
    <div id="choicesBlock" class="choices"><div class="field-head"><b>› 선택지</b><button id="addChoice">＋ 추가</button></div><div id="choiceList"></div></div>
   </div>
   <div id="designTab" class="tab-page stack"><label class="field">UI 테마 5종<div id="themeGrid" class="theme-grid"></div></label><div class="font-box"><div><b>가 프로젝트 글꼴</b><small>대사와 선택지에 적용됩니다.</small></div><select id="fontSelect"></select><label class="upload-font">⇧ 글꼴 추가<input id="fontInput" type="file" accept=".ttf,.otf,.woff,.woff2"></label><p>웹 사용과 재배포가 허용된 글꼴만 추가해주세요.</p></div></div>
-  <div id="publishTab" class="tab-page stack"><div class="publish-intro"><b>숲 게시용 완성본 만들기</b><p>편집 화면 없이 이야기만 재생되는 HTML 파일을 만듭니다.</p></div><label class="field">작품 파일 이름<input id="slugInput" value="my-story" placeholder="영문, 숫자, 하이픈"></label><button id="downloadStory" class="big-primary">① 감상용 HTML 다운로드</button><div class="guide"><b>② 다운로드한 파일을 GitHub에 올린 뒤 주소 입력</b><p><code>projects/작품이름/index.html</code> 위치에 업로드하면 관리하기 편합니다.</p></div><label class="field">감상용 페이지 주소<input id="storyUrl" placeholder="https://.../projects/my-story/"></label><label class="field">③ 숲 게시판 iframe 코드<textarea id="iframeCode" rows="5" readonly></textarea></label><button id="copyIframe">코드 복사</button></div>
+  <div id="publishTab" class="tab-page stack"><div class="publish-intro"><b>숲 게시용 완성본 만들기</b><p>편집 화면 없이 이야기만 재생되는 페이지를 만듭니다.</p></div><label class="field">작품 파일 이름<input id="slugInput" value="my-story" placeholder="영문, 숫자, 하이픈"></label><button id="autoDeploy" class="big-primary">GitHub에 자동 업로드</button><p id="deployStatus"></p><button id="downloadStory">수동 테스트용 HTML 다운로드</button><label class="field">감상용 페이지 주소<input id="storyUrl" placeholder="자동 업로드 후 주소가 표시됩니다."></label><label class="field">숲 게시판 iframe 코드<textarea id="iframeCode" rows="5" readonly></textarea></label><button id="copyIframe">코드 복사</button></div>
  </section>
  <aside class="preview"><div class="head"><span><small>LIVE PREVIEW</small><b>미리보기</b></span><button id="restartBtn">↻ 처음부터</button></div><div id="previewPlayer"></div><p>선택지를 눌러 실제 흐름을 테스트할 수 있어요.</p></aside>
 </main>
 <div id="overlay" class="overlay hidden"><button id="closePlay">×</button><div id="fullPlayer"></div></div>
 <input id="projectInput" hidden type="file" accept=".json">
-<script src="app.js"></script></body></html>
+<script src="app.js"></script><script src="exporter-v2.js"></script></body></html>
