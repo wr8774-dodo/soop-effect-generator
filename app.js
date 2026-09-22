@@ -4021,3 +4021,10 @@ window.addEventListener(
 applyRatio();
 loadSelectedNormalPhoto();
 updateNormalPreview();
+
+function syncStoryRatioUI(){
+ const section=document.getElementById("outputRatioSection");
+ if(section)section.classList.toggle("story-hidden",state.mode==="story");
+}
+document.addEventListener("click",()=>setTimeout(syncStoryRatioUI,0));
+syncStoryRatioUI();

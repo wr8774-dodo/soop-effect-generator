@@ -1788,3 +1788,6 @@ body.authenticated .login-gate {
 .story-preview-holder:has(.story-preview[data-story-ratio="9:16"]){
     width:min(430px,100%);
 }
+
+/* v9: 스토리 모드에서는 공통 출력 비율을 사용하지 않음 */
+#outputRatioSection.story-hidden{display:none !important;}
