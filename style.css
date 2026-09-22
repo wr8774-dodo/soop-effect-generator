@@ -1750,3 +1750,21 @@ body.authenticated .login-gate {
 .story-preview-image.story-slide-prev,
 .story-preview-image.story-zoom{animation:storyStorySafeFade .28s ease-out}
 @keyframes storyStorySafeFade{from{opacity:.15}to{opacity:1}}
+
+/* 스토리 프로필 / 상하단 UI */
+.story-profile-settings{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(220px,1.2fr);gap:14px;margin-bottom:14px}
+.story-profile-settings .control input[type="text"]{width:100%;padding:11px 12px;border:1px solid #3c414d;border-radius:9px;background:#101217;color:#fff;outline:none}
+.story-profile-settings .control input[type="text"]:focus{border-color:var(--accent)}
+.story-profile-upload{min-height:92px}
+.story-top-ui{position:absolute;z-index:40;left:14px;right:12px;top:28px;display:flex;align-items:center;gap:9px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55);pointer-events:none}
+.story-profile-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.9)}
+.story-profile-meta{display:flex;align-items:center;gap:7px;min-width:0;font-size:13px}
+.story-profile-meta strong{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story-profile-meta span{font-size:12px;color:rgba(255,255,255,.76)}
+.story-more{margin-left:auto;border:0;background:transparent;color:#fff;font-size:19px;letter-spacing:1px;padding:4px;pointer-events:none}
+.story-bottom-ui{position:absolute;z-index:40;left:14px;right:14px;bottom:16px;display:flex;align-items:center;gap:10px;color:#fff;pointer-events:none}
+.story-reply-box{flex:1;min-width:0;height:38px;display:flex;align-items:center;padding:0 15px;border:1px solid rgba(255,255,255,.86);border-radius:999px;color:rgba(255,255,255,.88);font-size:13px;background:rgba(0,0,0,.08);text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.story-bottom-icon{width:34px;height:34px;display:grid;place-items:center;padding:0;border:0;background:transparent;color:#fff;font-size:29px;line-height:1;pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.55)}
+.story-send-icon{font-size:27px;transform:rotate(-25deg)}
+.story-counter{bottom:62px}
+@media(max-width:650px){.story-profile-settings{grid-template-columns:1fr}}

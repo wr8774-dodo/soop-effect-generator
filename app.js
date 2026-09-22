@@ -2200,7 +2200,11 @@ storyReset=document.getElementById("storyReset"),storyPreview=document.getElemen
 storyPreviewImage=document.getElementById("storyPreviewImage"),storyProgress=document.getElementById("storyProgress"),
 storyPrev=document.getElementById("storyPrev"),storyNext=document.getElementById("storyNext"),
 storyCounter=document.getElementById("storyCounter"),storyEmpty=document.getElementById("storyEmpty"),
-storyReplay=document.getElementById("storyReplay");
+storyReplay=document.getElementById("storyReplay"),
+storyProfilePhoto=document.getElementById("storyProfilePhoto"),
+storyProfileName=document.getElementById("storyProfileName"),
+storyProfilePreview=document.getElementById("storyProfilePreview"),
+storyProfileNamePreview=document.getElementById("storyProfileNamePreview");
 
 const storyState={slots:[],index:0,timer:null,drag:false,startX:0,startY:0,baseX:0,baseY:0};
 
@@ -2323,6 +2327,26 @@ storyPreview.addEventListener("pointerdown",e=>{if(e.target.closest(".story-nav"
 storyPreview.addEventListener("pointermove",e=>{if(!storyState.drag)return;const p=getStoryPhotos()[storyState.index];if(!p)return;p.x=storyState.baseX+e.clientX-storyState.startX;p.y=storyState.baseY+e.clientY-storyState.startY;applyStoryTransform();});
 storyPreview.addEventListener("pointerup",()=>storyState.drag=false);storyPreview.addEventListener("pointercancel",()=>storyState.drag=false);
 
+
+let storyProfileSrc="";
+
+storyProfileName.addEventListener("input",()=>{
+    storyProfileNamePreview.textContent=storyProfileName.value.trim()||"profile_name";
+});
+
+storyProfilePhoto.addEventListener("change",async e=>{
+    const file=e.target.files&&e.target.files[0];
+    if(!file)return;
+    if(!file.type.startsWith("image/"))return;
+    storyProfileSrc=await new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=()=>resolve(reader.result);
+        reader.onerror=()=>reject(reader.error);
+        reader.readAsDataURL(file);
+    });
+    storyProfilePreview.src=storyProfileSrc;
+});
+
 for(let i=0;i<2;i++)createStorySlot();
 showStoryIndex(0);
 
@@ -2334,6 +2358,14 @@ function createProjectSettings() {
 
         mode:
             state.mode,
+
+        storyProfile: {
+            name:
+                storyProfileName.value.trim(),
+
+            photo:
+                storyProfileSrc
+        },
 
         ratio:
             state.ratio,
