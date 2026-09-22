@@ -182,6 +182,9 @@ const normalMode =
 const polaroidMode =
     document.getElementById("polaroidMode");
 
+const storyMode =
+    document.getElementById("storyMode");
+
 
 /* 일반 사진 */
 
@@ -446,20 +449,19 @@ modeButtons.forEach(button => {
             state.mode =
                 button.dataset.mode;
 
-            if (state.mode === "normal") {
+            normalMode.classList.toggle("hidden", state.mode !== "normal");
+            polaroidMode.classList.toggle("hidden", state.mode !== "polaroid");
+            storyMode.classList.toggle("hidden", state.mode !== "story");
 
-                normalMode.classList.remove("hidden");
-                polaroidMode.classList.add("hidden");
-
-            } else {
-
-                normalMode.classList.add("hidden");
-                polaroidMode.classList.remove("hidden");
-
+            if (state.mode === "polaroid") {
                 requestAnimationFrame(() => {
                     updatePolaroidCrop();
                     updatePolaroidPreview();
                 });
+            }
+
+            if (state.mode === "story") {
+                restartStoryTimer();
             }
         }
     );
@@ -2143,6 +2145,10 @@ const optimized =
 ========================================================= */
 
 function validateProject() {
+    if (state.mode === "story" && storyState.photos.length < 2) {
+        return { ok: false, message: "스토리 사진을 2장 이상 선택해주세요." };
+    }
+
 
     if (state.mode === "normal") {
 
@@ -2182,6 +2188,35 @@ function validateProject() {
 /* =========================================================
    프로젝트 설정 만들기
 ========================================================= */
+
+
+/* 스토리 효과 */
+const storyPhotos=document.getElementById("storyPhotos"),storyPhotoList=document.getElementById("storyPhotoList"),
+storyDuration=document.getElementById("storyDuration"),storyTransition=document.getElementById("storyTransition"),
+storyAutoPlay=document.getElementById("storyAutoPlay"),storyZoom=document.getElementById("storyZoom"),
+storyReset=document.getElementById("storyReset"),storyPreview=document.getElementById("storyPreview"),
+storyPreviewImage=document.getElementById("storyPreviewImage"),storyProgress=document.getElementById("storyProgress"),
+storyPrev=document.getElementById("storyPrev"),storyNext=document.getElementById("storyNext"),
+storyCounter=document.getElementById("storyCounter"),storyEmpty=document.getElementById("storyEmpty"),
+storyReplay=document.getElementById("storyReplay");
+const storyState={photos:[],index:0,timer:null,drag:false,startX:0,startY:0,baseX:0,baseY:0};
+function stopStoryTimer(){if(storyState.timer){clearTimeout(storyState.timer);storyState.timer=null;}}
+function renderStoryPhotoList(){storyPhotoList.innerHTML="";storyState.photos.forEach((p,i)=>{const b=document.createElement("button");b.type="button";b.className="story-photo-chip"+(i===storyState.index?" active":"");b.textContent=`${i+1}. ${p.name}`;b.addEventListener("click",()=>showStoryIndex(i,i>=storyState.index?"next":"prev"));storyPhotoList.appendChild(b);});}
+function renderStoryProgress(){storyProgress.innerHTML="";storyState.photos.forEach((_,i)=>{const b=document.createElement("div");b.className="story-progress-item";if(i<storyState.index)b.classList.add("done");if(i===storyState.index)b.classList.add("current");const f=document.createElement("div");f.className="story-progress-fill";f.style.setProperty("--story-duration",`${storyDuration.value}s`);b.appendChild(f);storyProgress.appendChild(b);if(i===storyState.index&&storyAutoPlay.checked&&storyState.photos.length>1)requestAnimationFrame(()=>f.classList.add("playing"));});}
+function applyStoryTransform(){const p=storyState.photos[storyState.index];if(!p)return;const z=Number(p.zoom||1);storyPreviewImage.style.setProperty("--story-zoom",z);storyPreviewImage.style.transform=`translate(calc(-50% + ${p.x||0}px),calc(-50% + ${p.y||0}px)) scale(${z})`;storyZoom.value=z;}
+function restartStoryTimer(){stopStoryTimer();renderStoryProgress();if(state.mode!=="story"||!storyAutoPlay.checked||storyState.photos.length<2)return;storyState.timer=setTimeout(()=>{if(storyState.index<storyState.photos.length-1)showStoryIndex(storyState.index+1,"next");},Number(storyDuration.value)*1000);}
+function showStoryIndex(i,d="next"){if(!storyState.photos.length){storyCounter.textContent="0 / 0";storyEmpty.classList.remove("hidden");return;}storyState.index=Math.max(0,Math.min(storyState.photos.length-1,i));const p=storyState.photos[storyState.index];storyPreviewImage.src=p.src;storyEmpty.classList.add("hidden");storyCounter.textContent=`${storyState.index+1} / ${storyState.photos.length}`;storyPreviewImage.classList.remove("story-fade","story-slide-next","story-slide-prev","story-zoom");void storyPreviewImage.offsetWidth;if(storyTransition.value==="slide")storyPreviewImage.classList.add(d==="prev"?"story-slide-prev":"story-slide-next");else if(storyTransition.value==="zoom")storyPreviewImage.classList.add("story-zoom");else storyPreviewImage.classList.add("story-fade");applyStoryTransform();renderStoryPhotoList();restartStoryTimer();}
+storyPhotos.addEventListener("change",async e=>{stopStoryTimer();storyState.photos=[];for(const file of Array.from(e.target.files||[])){const src=await readFileAsDataURL(file);storyState.photos.push({name:file.name,src,x:0,y:0,zoom:1});}storyState.index=0;showStoryIndex(0);});
+storyPrev.addEventListener("click",e=>{e.stopPropagation();if(storyState.index>0)showStoryIndex(storyState.index-1,"prev");else restartStoryTimer();});
+storyNext.addEventListener("click",e=>{e.stopPropagation();if(storyState.index<storyState.photos.length-1)showStoryIndex(storyState.index+1,"next");else restartStoryTimer();});
+storyReplay.addEventListener("click",()=>showStoryIndex(0));storyDuration.addEventListener("input",restartStoryTimer);storyAutoPlay.addEventListener("change",restartStoryTimer);
+storyTransition.addEventListener("change",()=>showStoryIndex(storyState.index));
+storyZoom.addEventListener("input",()=>{const p=storyState.photos[storyState.index];if(p){p.zoom=Number(storyZoom.value);applyStoryTransform();}});
+storyReset.addEventListener("click",()=>{const p=storyState.photos[storyState.index];if(p){p.x=0;p.y=0;p.zoom=1;applyStoryTransform();}});
+storyPreview.addEventListener("keydown",e=>{if(e.key==="ArrowLeft")storyPrev.click();if(e.key==="ArrowRight")storyNext.click();});
+storyPreview.addEventListener("pointerdown",e=>{if(e.target.closest(".story-nav"))return;const p=storyState.photos[storyState.index];if(!p)return;storyState.drag=true;storyState.startX=e.clientX;storyState.startY=e.clientY;storyState.baseX=p.x||0;storyState.baseY=p.y||0;storyPreview.setPointerCapture(e.pointerId);});
+storyPreview.addEventListener("pointermove",e=>{if(!storyState.drag)return;const p=storyState.photos[storyState.index];if(!p)return;p.x=storyState.baseX+e.clientX-storyState.startX;p.y=storyState.baseY+e.clientY-storyState.startY;applyStoryTransform();});
+storyPreview.addEventListener("pointerup",()=>storyState.drag=false);storyPreview.addEventListener("pointercancel",()=>storyState.drag=false);
 
 function createProjectSettings() {
 
@@ -2374,7 +2409,9 @@ exportButton.addEventListener("click", async () => {
         const source =
             state.mode === "normal"
                 ? normalPreview
-                : polaroidPreview;
+                : state.mode === "polaroid"
+                    ? polaroidPreview
+                    : storyPreview;
 
         const clone = source.cloneNode(true);
 
@@ -2508,7 +2545,8 @@ body {
 ===================================================== */
 
 #soop-effect-root > .normal-preview,
-#soop-effect-root > .polaroid-preview {
+#soop-effect-root > .polaroid-preview,
+#soop-effect-root > .story-preview {
 
     position: absolute !important;
 
@@ -2639,6 +2677,30 @@ ${clone.outerHTML}
         root.querySelector(
             ".polaroid-preview"
         );
+
+    const storyPreview =
+        root.querySelector(".story-preview");
+
+    if (storyPreview) {
+        const image=storyPreview.querySelector(".story-preview-image");
+        const progress=storyPreview.querySelector(".story-progress");
+        const counter=storyPreview.querySelector(".story-counter");
+        const prev=storyPreview.querySelector(".story-nav-prev");
+        const next=storyPreview.querySelector(".story-nav-next");
+        const empty=storyPreview.querySelector(".story-empty");
+        const photos=${JSON.stringify(storyState.photos.map(p=>({src:p.src,x:p.x||0,y:p.y||0,zoom:p.zoom||1})))};
+        const duration=${Number(storyDuration.value)};
+        const transition=${JSON.stringify(storyTransition.value)};
+        const autoPlay=${storyAutoPlay.checked ? "true" : "false"};
+        let index=0,timer=null;
+        function bars(){progress.innerHTML="";photos.forEach((_,i)=>{const b=document.createElement("div");b.className="story-progress-item";if(i<index)b.classList.add("done");if(i===index)b.classList.add("current");const f=document.createElement("div");f.className="story-progress-fill";f.style.setProperty("--story-duration",duration+"s");b.appendChild(f);progress.appendChild(b);if(i===index&&autoPlay&&photos.length>1)requestAnimationFrame(()=>f.classList.add("playing"));});}
+        function restart(){if(timer)clearTimeout(timer);bars();if(!autoPlay||photos.length<2)return;timer=setTimeout(()=>{if(index<photos.length-1)show(index+1,"next");},duration*1000);}
+        function show(i,d){if(!photos.length)return;index=Math.max(0,Math.min(photos.length-1,i));const p=photos[index];image.src=p.src;if(empty)empty.style.display="none";image.style.setProperty("--story-zoom",p.zoom||1);image.style.transform="translate(calc(-50% + "+(p.x||0)+"px),calc(-50% + "+(p.y||0)+"px)) scale("+(p.zoom||1)+")";image.classList.remove("story-fade","story-slide-next","story-slide-prev","story-zoom");void image.offsetWidth;if(transition==="slide")image.classList.add(d==="prev"?"story-slide-prev":"story-slide-next");else if(transition==="zoom")image.classList.add("story-zoom");else image.classList.add("story-fade");counter.textContent=(index+1)+" / "+photos.length;restart();}
+        prev.addEventListener("click",e=>{e.stopPropagation();if(index>0)show(index-1,"prev");else restart();});
+        next.addEventListener("click",e=>{e.stopPropagation();if(index<photos.length-1)show(index+1,"next");else restart();});
+        show(0,"next");
+    }
+
 
 
     /* =================================================

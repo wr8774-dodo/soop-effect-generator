@@ -102,6 +102,10 @@
                 📷 폴라로이드 효과
             </button>
 
+            <button type="button" class="mode-button" data-mode="story">
+                📱 스토리 효과
+            </button>
+
         </div>
 
     </section>
@@ -1080,6 +1084,48 @@
     </div>
 
 
+
+    <div id="storyMode" class="hidden">
+        <section class="panel">
+            <h2>3. 스토리 사진 선택</h2>
+            <label class="upload-box single-upload">
+                <strong>📱 사진 여러 장 선택</strong>
+                <span>2장 이상 권장 · 여러 장을 한 번에 선택하세요.</span>
+                <input id="storyPhotos" type="file" accept="image/*" multiple>
+            </label>
+            <div id="storyPhotoList" class="story-photo-list"></div>
+        </section>
+        <section class="panel">
+            <h2>4. 스토리 설정</h2>
+            <div class="effect-grid">
+                <div class="effect-card"><h3>⏱ 재생</h3>
+                    <label class="control"><span>사진 한 장 표시 시간</span><input id="storyDuration" type="range" min="1" max="10" step="0.5" value="4"></label>
+                    <label class="control"><span>전환 효과</span><select id="storyTransition"><option value="fade">페이드</option><option value="slide">슬라이드</option><option value="zoom">부드러운 줌</option></select></label>
+                    <label class="switch-line"><input id="storyAutoPlay" type="checkbox" checked><span>자동으로 다음 사진 넘기기</span></label>
+                </div>
+                <div class="effect-card"><h3>🖼 사진 조절</h3>
+                    <label class="control"><span>현재 사진 확대 / 축소</span><input id="storyZoom" type="range" min="1" max="3" step="0.01" value="1"></label>
+                    <button type="button" id="storyReset" class="secondary-button">현재 사진 위치 초기화</button>
+                    <p class="help">미리보기 사진을 드래그해서 위치를 조절할 수 있습니다.</p>
+                </div>
+            </div>
+        </section>
+        <section class="panel">
+            <h2>5. 실시간 미리보기</h2>
+            <p class="help">왼쪽을 누르면 이전 사진, 오른쪽을 누르면 다음 사진으로 이동합니다.</p>
+            <div class="story-preview-holder">
+                <div id="storyPreview" class="story-preview" tabindex="0">
+                    <div id="storyProgress" class="story-progress"></div>
+                    <img id="storyPreviewImage" class="story-preview-image" alt="" draggable="false">
+                    <div id="storyEmpty" class="story-empty">사진을 2장 이상 선택해주세요.</div>
+                    <button type="button" id="storyPrev" class="story-nav story-nav-prev" aria-label="이전 사진"><span>‹</span></button>
+                    <button type="button" id="storyNext" class="story-nav story-nav-next" aria-label="다음 사진"><span>›</span></button>
+                    <div id="storyCounter" class="story-counter">0 / 0</div>
+                </div>
+                <button type="button" id="storyReplay" class="secondary-button replay-button">▶ 처음부터 재생</button>
+            </div>
+        </section>
+    </div>
 
     <!-- =====================================================
          출력 해상도
