@@ -4028,3 +4028,11 @@ function syncStoryRatioUI(){
 }
 document.addEventListener("click",()=>setTimeout(syncStoryRatioUI,0));
 syncStoryRatioUI();
+
+/* v10 output ratio visibility fallback */
+(function(){
+ const section=document.getElementById("outputRatioSection");
+ const sync=()=>{if(section)section.style.display=(state&&state.mode==="story")?"none":"";};
+ document.addEventListener("click",()=>setTimeout(sync,0));
+ setTimeout(sync,0);
+})();

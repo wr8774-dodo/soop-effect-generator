@@ -1791,3 +1791,7 @@ body.authenticated .login-gate {
 
 /* v9: 스토리 모드에서는 공통 출력 비율을 사용하지 않음 */
 #outputRatioSection.story-hidden{display:none !important;}
+
+/* v10: 스토리 선택 시 2번 출력비율 카드 전체 숨김 */
+#outputRatioSection.story-hidden{display:none!important;}
+body:has(#storyMode:not(.hidden)) #outputRatioSection{display:none!important;}
