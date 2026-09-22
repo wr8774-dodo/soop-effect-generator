@@ -389,6 +389,7 @@ const copyIframe =
 ========================================================= */
 
 const ratioMap = {
+    "9:16":[9,16],
     "16/9": [16, 9],
     "4/5": [4, 5],
     "2/3": [2, 3]
@@ -2615,9 +2616,7 @@ for (
         }
 
         const [ratioWidth, ratioHeight] =
-            state.mode === "story"
-                ? (storyRatio === "9:16" ? [9, 16] : [16, 9])
-                : ratioMap[state.ratio];
+            ratioMap[state.ratio];
 
 const html = `<!DOCTYPE html>
 <html lang="ko">
@@ -4024,22 +4023,27 @@ syncStoryRatioUI();
 
 
 
-/* v12: 2번 비율을 모드별 단일 비율 선택기로 사용 */
+
+/* v13: 스토리도 기존 출력비율(state.ratio) 경로를 그대로 사용 */
 (function(){
  const buttons=[...document.querySelectorAll("[data-ratio]")];
  if(!buttons.length)return;
- const labels=new Map(buttons.map(b=>[b,b.textContent]));
- function setActive(value){
-   buttons.forEach(b=>b.classList.toggle("active",b.dataset.ratio===value));
- }
- function syncRatioSection(){
+
+ function sync(){
    if(state.mode==="story"){
+     const vals=["9:16","16:9"];
      buttons.forEach((b,i)=>{
-       if(i===0){b.style.display="";b.dataset.ratio="9:16";b.textContent="9:16 세로";}
-       else if(i===1){b.style.display="";b.dataset.ratio="16:9";b.textContent="16:9 가로";}
-       else b.style.display="none";
+       if(i<2){
+         b.style.display="";
+         b.dataset.ratio=vals[i];
+         b.textContent=i===0?"9:16 세로":"16:9 가로";
+       }else{
+         b.style.display="none";
+       }
      });
-     setActive(storyRatio);
+     if(state.ratio!=="9:16" && state.ratio!=="16:9") state.ratio="9:16";
+     storyRatio=state.ratio;
+     if(typeof applyStoryRatio==="function") applyStoryRatio();
    }else{
      const vals=["16:9","4:5","2:3"];
      buttons.forEach((b,i)=>{
@@ -4047,18 +4051,20 @@ syncStoryRatioUI();
        b.dataset.ratio=vals[i];
        b.textContent=vals[i];
      });
-     setActive(state.ratio);
+     if(!vals.includes(state.ratio)) state.ratio="16:9";
    }
+   buttons.forEach(b=>b.classList.toggle("active",b.dataset.ratio===state.ratio));
  }
+
  buttons.forEach(b=>b.addEventListener("click",()=>{
-   setTimeout(()=>{
-     if(state.mode==="story"){
-       storyRatio=b.dataset.ratio==="16:9"?"16:9":"9:16";
-       applyStoryRatio();
-       setActive(storyRatio);
-     }
-   },0);
+   if(state.mode==="story"){
+     state.ratio=b.dataset.ratio;
+     storyRatio=state.ratio;
+     if(typeof applyStoryRatio==="function") applyStoryRatio();
+   }
+   setTimeout(sync,0);
  }));
- document.addEventListener("click",()=>setTimeout(syncRatioSection,0));
- syncRatioSection();
+
+ document.addEventListener("click",()=>setTimeout(sync,0));
+ sync();
 })();
