@@ -2230,7 +2230,17 @@ function renderStorySlots(){
         const input=document.createElement("input");input.type="file";input.accept="image/*";
         input.addEventListener("change",async e=>{
             const file=e.target.files&&e.target.files[0];if(!file)return;
-            const src=await readFileAsDataURL(file);
+            if(!file.type.startsWith("image/")){
+                alert("이미지 파일을 선택해주세요.");
+                input.value="";
+                return;
+            }
+            const src=await new Promise((resolve,reject)=>{
+                const reader=new FileReader();
+                reader.onload=()=>resolve(reader.result);
+                reader.onerror=()=>reject(reader.error);
+                reader.readAsDataURL(file);
+            });
             slot.src=src;slot.name=file.name;slot.x=0;slot.y=0;slot.zoom=1;
             const photos=getStoryPhotos();
             storyState.index=Math.max(0,photos.findIndex(p=>p===slot));
@@ -2313,7 +2323,7 @@ storyPreview.addEventListener("pointerdown",e=>{if(e.target.closest(".story-nav"
 storyPreview.addEventListener("pointermove",e=>{if(!storyState.drag)return;const p=getStoryPhotos()[storyState.index];if(!p)return;p.x=storyState.baseX+e.clientX-storyState.startX;p.y=storyState.baseY+e.clientY-storyState.startY;applyStoryTransform();});
 storyPreview.addEventListener("pointerup",()=>storyState.drag=false);storyPreview.addEventListener("pointercancel",()=>storyState.drag=false);
 
-for(let i=0;i<3;i++)createStorySlot();
+for(let i=0;i<2;i++)createStorySlot();
 showStoryIndex(0);
 
 function createProjectSettings() {

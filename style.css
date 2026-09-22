@@ -1743,3 +1743,10 @@ body.authenticated .login-gate {
 .story-remove-photo{width:100%;margin-top:7px;padding:8px 10px;border:1px solid #3c414d;border-radius:8px;background:#1a1d24;color:#ddd;cursor:pointer}
 .story-add-photo{margin-top:14px}
 @media(max-width:760px){.story-upload-slots{grid-template-columns:1fr}}
+
+/* v3: 스토리 사진 위치/확대 transform과 전환 애니메이션 충돌 방지 */
+.story-preview-image.story-fade,
+.story-preview-image.story-slide-next,
+.story-preview-image.story-slide-prev,
+.story-preview-image.story-zoom{animation:storyStorySafeFade .28s ease-out}
+@keyframes storyStorySafeFade{from{opacity:.15}to{opacity:1}}
