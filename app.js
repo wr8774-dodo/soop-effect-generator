@@ -2329,7 +2329,17 @@ storyPreview.addEventListener("pointerup",()=>storyState.drag=false);storyPrevie
 
 
 let storyRatio="9:16";storyPreview.dataset.storyRatio=storyRatio;
-storyRatioButtons.forEach(b=>b.addEventListener("click",()=>{storyRatio=b.dataset.storyRatio;storyRatioButtons.forEach(x=>x.classList.toggle("active",x===b));storyPreview.dataset.storyRatio=storyRatio;}));
+function applyStoryRatio(){
+    storyPreview.dataset.storyRatio=storyRatio;
+    storyPreview.style.aspectRatio=storyRatio==="9:16"?"9 / 16":"16 / 9";
+    storyPreview.style.height="auto";
+}
+applyStoryRatio();
+storyRatioButtons.forEach(b=>b.addEventListener("click",()=>{
+    storyRatio=b.dataset.storyRatio;
+    storyRatioButtons.forEach(x=>x.classList.toggle("active",x===b));
+    applyStoryRatio();
+}));
 let storyProfileSrc="";
 
 storyProfileName.addEventListener("input",()=>{
