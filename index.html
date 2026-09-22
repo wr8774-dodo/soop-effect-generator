@@ -10,6 +10,10 @@
 
     <title>SOOP 효과 생성기</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Dongle:wght@300;400;700&family=Gaegu:wght@300;400;700&family=Gamja+Flower&family=Gowun+Dodum&family=Hi+Melody&family=Jua&family=Single+Day&family=Galmuri11&display=swap" rel="stylesheet">
+
     <link
         rel="stylesheet"
         href="style.css"
@@ -521,6 +525,44 @@
                 </div>
 
 
+                <!-- 터치 효과 -->
+
+                <div class="effect-card">
+
+                    <h3>🌟 터치 효과</h3>
+
+                    <label class="switch-line">
+                        <input id="touchEnabled" type="checkbox" checked>
+                        <span>마우스 오버 터치 효과 사용</span>
+                    </label>
+
+                    <label class="control">
+                        <span>효과 종류</span>
+                        <select id="touchType">
+                            <option value="star">별 반짝임</option>
+                            <option value="light">심플한 빛</option>
+                            <option value="dust">빛가루</option>
+                        </select>
+                    </label>
+
+                    <label class="control">
+                        <span>효과 개수</span>
+                        <input id="touchCount" type="range" min="3" max="30" step="1" value="12">
+                    </label>
+
+                    <label class="control">
+                        <span>효과 크기</span>
+                        <input id="touchSize" type="range" min="8" max="60" step="1" value="24">
+                    </label>
+
+                    <label class="control">
+                        <span>퍼짐 범위</span>
+                        <input id="touchSpread" type="range" min="30" max="450" step="5" value="180">
+                    </label>
+
+                </div>
+
+
             </div>
 
         </section>
@@ -568,6 +610,8 @@
                     <div class="preview-shine"></div>
 
                     <div class="preview-hearts"></div>
+
+                    <div class="preview-touches"></div>
 
                 </div>
 
@@ -830,6 +874,28 @@
 
                     </label>
 
+
+                    <label class="control">
+
+                        <span>
+                            글꼴
+                        </span>
+
+                        <select id="captionFont">
+                            <option value="'Jua', sans-serif">주아</option>
+                            <option value="'Dongle', sans-serif">동글</option>
+                            <option value="'Gowun Dodum', sans-serif">큐트폰트</option>
+                            <option value="'Gaegu', cursive">개구</option>
+                            <option value="'Gamja Flower', cursive">감자꽃</option>
+                            <option value="'Hi Melody', cursive">하이멜로디</option>
+                            <option value="'Single Day', cursive">싱글데이</option>
+                            <option value="'Do Hyeon', sans-serif">도현</option>
+                            <option value="'Black Han Sans', sans-serif">검은고딕</option>
+                            <option value="'Galmuri11', sans-serif">갈무리11</option>
+                        </select>
+
+                    </label>
+
                 </div>
 
 
@@ -1016,13 +1082,48 @@
 
 
     <!-- =====================================================
+         출력 해상도
+    ====================================================== -->
+
+    <section class="panel">
+
+        <h2>7. 사진 해상도</h2>
+
+        <div class="resolution-controls">
+            <label class="control">
+                <span>배포 이미지 긴 변 기준</span>
+                <select id="deployResolution">
+                    <option value="original">원본 유지</option>
+                    <option value="1200">1200px</option>
+                    <option value="1600">1600px</option>
+                    <option value="1920">1920px</option>
+                    <option value="2560">2560px</option>
+                    <option value="2800" selected>2800px</option>
+                    <option value="custom">직접 입력</option>
+                </select>
+            </label>
+
+            <label id="customResolutionWrap" class="control hidden">
+                <span>원하는 긴 변 해상도 (px)</span>
+                <input id="customResolution" type="number" min="320" max="7680" step="1" value="2800">
+            </label>
+        </div>
+
+        <p class="help">
+            사진 비율은 유지됩니다. 선택한 값보다 원본이 작으면 확대하지 않습니다.
+        </p>
+
+    </section>
+
+
+    <!-- =====================================================
          7. SOOP용 만들기
          ★ GitHub 입력 부분 삭제
     ====================================================== -->
 
     <section class="panel export-panel">
 
-        <h2>7. SOOP용 만들기</h2>
+        <h2>8. SOOP용 만들기</h2>
 
 
         <p class="help">

@@ -221,6 +221,33 @@ const previewShine =
 const previewHearts =
     document.querySelector(".preview-hearts");
 
+const previewTouches =
+    document.querySelector(".preview-touches");
+
+const touchEnabled =
+    document.getElementById("touchEnabled");
+
+const touchType =
+    document.getElementById("touchType");
+
+const touchCount =
+    document.getElementById("touchCount");
+
+const touchSize =
+    document.getElementById("touchSize");
+
+const touchSpread =
+    document.getElementById("touchSpread");
+
+const deployResolution =
+    document.getElementById("deployResolution");
+
+const customResolutionWrap =
+    document.getElementById("customResolutionWrap");
+
+const customResolution =
+    document.getElementById("customResolution");
+
 
 /* 일반 효과 */
 
@@ -286,6 +313,9 @@ const captionText =
 
 const captionSize =
     document.getElementById("captionSize");
+
+const captionFont =
+    document.getElementById("captionFont");
 
 const cameraUiEnabled =
     document.getElementById("cameraUiEnabled");
@@ -1154,6 +1184,127 @@ function createHearts() {
 
 
 /* =========================================================
+   마우스 오버 터치 효과
+========================================================= */
+
+function createTouchParticles() {
+
+    if (
+        !touchEnabled.checked ||
+        !previewTouches
+    ) {
+        return;
+    }
+
+    const count =
+        Number(touchCount.value);
+
+    const size =
+        Number(touchSize.value);
+
+    const spread =
+        Number(touchSpread.value);
+
+    const type =
+        touchType.value;
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const particle =
+            document.createElement("span");
+
+        particle.className =
+            `touch-particle touch-${type}`;
+
+        if (type === "star") {
+            particle.textContent =
+                Math.random() > .45 ? "✦" : "✧";
+        }
+
+        const angle =
+            Math.random() *
+            Math.PI *
+            2;
+
+        const distance =
+            spread *
+            (
+                .2 +
+                Math.random() * .8
+            );
+
+        const x =
+            Math.cos(angle) *
+            distance;
+
+        const y =
+            Math.sin(angle) *
+            distance;
+
+        const actualSize =
+            size *
+            (
+                .55 +
+                Math.random() * .8
+            );
+
+        const rotation =
+            -90 +
+            Math.random() * 180;
+
+        particle.style.fontSize =
+            `${actualSize}px`;
+
+        if (type !== "star") {
+            particle.style.width =
+                `${Math.max(3, actualSize * (type === "light" ? .34 : .18))}px`;
+            particle.style.height =
+                particle.style.width;
+        }
+
+        particle.style.setProperty(
+            "--touch-x",
+            `${x}px`
+        );
+
+        particle.style.setProperty(
+            "--touch-y",
+            `${y}px`
+        );
+
+        particle.style.setProperty(
+            "--touch-r",
+            `${rotation}deg`
+        );
+
+        particle.style.setProperty(
+            "--touch-duration",
+            `${.55 + Math.random() * .55}s`
+        );
+
+        previewTouches.appendChild(
+            particle
+        );
+
+        particle.addEventListener(
+            "animationend",
+            () => particle.remove()
+        );
+    }
+}
+
+
+normalPreview.addEventListener(
+    "mouseenter",
+    createTouchParticles
+);
+
+
+/* =========================================================
    ② ↔ ③ 클릭
 ========================================================= */
 
@@ -1532,6 +1683,9 @@ function updatePolaroidPreview() {
     polaroidCaption.style.fontSize =
         `${captionSize.value}px`;
 
+    polaroidCaption.style.fontFamily =
+        captionFont.value;
+
     polaroidCaption.style.display =
         captionEnabled.checked
             ? "block"
@@ -1564,7 +1718,8 @@ function updatePolaroidPreview() {
     polaroidSize,
     polaroidRotation,
     polaroidInnerZoom,
-    captionSize
+    captionSize,
+    captionFont
 ].forEach(input => {
 
     input.addEventListener(
@@ -1826,12 +1981,54 @@ replayPolaroid.addEventListener(
    - 배포할 때만 긴 변 최대 2800px로 축소
 ========================================================= */
 
+function getDeployMaxSize() {
+
+    if (
+        deployResolution.value === "original"
+    ) {
+        return null;
+    }
+
+    if (
+        deployResolution.value === "custom"
+    ) {
+        return Math.max(
+            320,
+            Math.min(
+                7680,
+                Number(customResolution.value) || 2800
+            )
+        );
+    }
+
+    return Number(
+        deployResolution.value
+    );
+}
+
+
+deployResolution.addEventListener(
+    "change",
+    () => {
+
+        customResolutionWrap.classList.toggle(
+            "hidden",
+            deployResolution.value !== "custom"
+        );
+    }
+);
+
+
 async function optimizeImageForDeploy(
     dataUrl,
     maxSize = 2800
 ) {
 
     if (!dataUrl) {
+        return dataUrl;
+    }
+
+    if (!maxSize) {
         return dataUrl;
     }
 
@@ -2052,6 +2249,23 @@ function createProjectSettings() {
                     Number(
                         heartSpread.value
                     )
+            },
+
+            touch: {
+                enabled:
+                    touchEnabled.checked,
+
+                type:
+                    touchType.value,
+
+                count:
+                    Number(touchCount.value),
+
+                size:
+                    Number(touchSize.value),
+
+                spread:
+                    Number(touchSpread.value)
             }
         },
 
@@ -2109,7 +2323,10 @@ function createProjectSettings() {
                 size:
                     Number(
                         captionSize.value
-                    )
+                    ),
+
+                font:
+                    captionFont.value
             },
 
             cameraUI:
@@ -2197,7 +2414,7 @@ for (
         img.src =
             await optimizeImageForDeploy(
                 original.src,
-                2800
+                getDeployMaxSize()
             );
     }
 }
@@ -2234,6 +2451,10 @@ const html = `<!DOCTYPE html>
 >
 
 <title>SOOP Effect</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Dongle:wght@300;400;700&family=Gaegu:wght@300;400;700&family=Gamja+Flower&family=Gowun+Dodum&family=Hi+Melody&family=Jua&family=Single+Day&family=Galmuri11&display=swap" rel="stylesheet">
 
 <style>
 ${css}
@@ -2484,6 +2705,12 @@ ${clone.outerHTML}
         const hearts =
             preview.querySelector(
                 ".preview-hearts"
+            );
+
+
+        const touches =
+            preview.querySelector(
+                ".preview-touches"
             );
 
 
@@ -2850,6 +3077,150 @@ ${clone.outerHTML}
 
 
         /* =============================================
+           마우스 오버 터치 효과
+        ============================================= */
+
+        const touchOn =
+            ${touchEnabled.checked ? "true" : "false"};
+
+        const touchTypeValue =
+            ${JSON.stringify(touchType.value)};
+
+        const touchCountValue =
+            ${Number(touchCount.value)};
+
+        const touchSizeValue =
+            ${Number(touchSize.value)};
+
+        const touchSpreadValue =
+            ${Number(touchSpread.value)};
+
+
+        function createTouchParticles() {
+
+            if (
+                !touchOn ||
+                !touches
+            ) {
+                return;
+            }
+
+            for (
+                let i = 0;
+                i < touchCountValue;
+                i++
+            ) {
+
+                const particle =
+                    document.createElement(
+                        "span"
+                    );
+
+                particle.className =
+                    "touch-particle touch-" +
+                    touchTypeValue;
+
+                if (
+                    touchTypeValue === "star"
+                ) {
+                    particle.textContent =
+                        Math.random() > .45
+                            ? "✦"
+                            : "✧";
+                }
+
+                const angle =
+                    Math.random() *
+                    Math.PI *
+                    2;
+
+                const distance =
+                    touchSpreadValue *
+                    (
+                        .2 +
+                        Math.random() * .8
+                    );
+
+                const x =
+                    Math.cos(angle) *
+                    distance;
+
+                const y =
+                    Math.sin(angle) *
+                    distance;
+
+                const actualSize =
+                    touchSizeValue *
+                    (
+                        .55 +
+                        Math.random() * .8
+                    );
+
+                const rotation =
+                    -90 +
+                    Math.random() * 180;
+
+                particle.style.fontSize =
+                    actualSize + "px";
+
+                if (
+                    touchTypeValue !== "star"
+                ) {
+                    const dotSize =
+                        Math.max(
+                            3,
+                            actualSize *
+                            (
+                                touchTypeValue === "light"
+                                    ? .34
+                                    : .18
+                            )
+                        );
+
+                    particle.style.width =
+                        dotSize + "px";
+
+                    particle.style.height =
+                        dotSize + "px";
+                }
+
+                particle.style.setProperty(
+                    "--touch-x",
+                    x + "px"
+                );
+
+                particle.style.setProperty(
+                    "--touch-y",
+                    y + "px"
+                );
+
+                particle.style.setProperty(
+                    "--touch-r",
+                    rotation + "deg"
+                );
+
+                particle.style.setProperty(
+                    "--touch-duration",
+                    (
+                        .55 +
+                        Math.random() * .55
+                    ) +
+                    "s"
+                );
+
+                touches.appendChild(
+                    particle
+                );
+
+                particle.addEventListener(
+                    "animationend",
+                    () => particle.remove()
+                );
+            }
+        }
+
+
+        /* =============================================
            ① → ② + 광택
         ============================================= */
 
@@ -2862,6 +3233,8 @@ ${clone.outerHTML}
                 );
 
                 playShine();
+
+                createTouchParticles();
             }
         );
 

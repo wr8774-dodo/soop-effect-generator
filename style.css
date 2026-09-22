@@ -1322,7 +1322,7 @@ button {
         polaroidPop
         1.05s
         1.78s
-        cubic-bezier(.18,1.15,.32,1)
+        cubic-bezier(.22,.85,.28,1)
         forwards;
 }
 
@@ -1330,44 +1330,46 @@ button {
 
     0% {
         opacity: 0;
-
         transform:
-            translate(-50%, -30%)
-            rotate(-10deg)
-            scale(.48);
+            translate(-50%, -34%)
+            rotate(calc(var(--final-rotation, -2deg) - 5deg))
+            scale(.72);
     }
 
-    35% {
+    28% {
         opacity: 1;
-
         transform:
-            translate(-50%, -53%)
-            rotate(4deg)
-            scale(1.08);
+            translate(-50%, -52.2%)
+            rotate(calc(var(--final-rotation, -2deg) + 1.8deg))
+            scale(1.035);
     }
 
-    58% {
+    48% {
         transform:
-            translate(-50%, -48%)
-            rotate(-3deg)
-            scale(.96);
+            translate(-50%, -49.1%)
+            rotate(calc(var(--final-rotation, -2deg) - .9deg))
+            scale(.988);
     }
 
-    76% {
+    66% {
         transform:
-            translate(-50%, -50%)
-            rotate(1.5deg)
-            scale(1.025);
+            translate(-50%, -50.35%)
+            rotate(calc(var(--final-rotation, -2deg) + .38deg))
+            scale(1.006);
+    }
+
+    82% {
+        transform:
+            translate(-50%, -49.9%)
+            rotate(calc(var(--final-rotation, -2deg) - .12deg))
+            scale(.998);
     }
 
     100% {
         opacity: 1;
-
         transform:
             translate(-50%, -50%)
-            rotate(
-                var(--final-rotation, -2deg)
-            )
+            rotate(var(--final-rotation, -2deg))
             scale(1);
     }
 }
@@ -1602,4 +1604,98 @@ body:not(.authenticated) .app {
 /* 로그인 성공하면 로그인 화면을 숨김 */
 body.authenticated .login-gate {
     display: none;
+}
+
+
+/* =========================================================
+   추가 컨트롤 / 터치 효과
+========================================================= */
+
+.control select,
+.control input[type="number"] {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #3c414d;
+    border-radius: 9px;
+    outline: none;
+    background: #101217;
+    color: white;
+}
+
+.control select:focus,
+.control input[type="number"]:focus {
+    border-color: var(--accent);
+}
+
+.preview-touches {
+    position: absolute;
+    z-index: 65;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.touch-particle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+    will-change: transform, opacity;
+    animation: touchParticlePop var(--touch-duration) cubic-bezier(.16,.8,.25,1) forwards;
+}
+
+.touch-particle.touch-star {
+    color: rgba(255,255,255,.98);
+    text-shadow: 0 0 8px rgba(255,255,255,.95), 0 0 18px rgba(220,205,255,.7);
+}
+
+.touch-particle.touch-light {
+    border-radius: 50%;
+    background: rgba(255,255,255,.95);
+    box-shadow: 0 0 8px rgba(255,255,255,.95), 0 0 22px rgba(225,210,255,.8);
+}
+
+.touch-particle.touch-dust {
+    border-radius: 50%;
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 0 6px rgba(255,255,255,.9);
+}
+
+@keyframes touchParticlePop {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translate(0,0) scale(.2) rotate(0deg);
+    }
+    18% {
+        opacity: 1;
+    }
+    55% {
+        opacity: .95;
+        transform: translate(-50%, -50%)
+            translate(calc(var(--touch-x) * .65), calc(var(--touch-y) * .65))
+            scale(1.15)
+            rotate(calc(var(--touch-r) * .65));
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%)
+            translate(var(--touch-x), var(--touch-y))
+            scale(.45)
+            rotate(var(--touch-r));
+    }
+}
+
+.resolution-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    max-width: 620px;
+}
+
+@media (max-width: 650px) {
+    .resolution-controls {
+        grid-template-columns: 1fr;
+    }
 }
