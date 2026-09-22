@@ -2619,7 +2619,9 @@ for (
         }
 
         const [ratioWidth, ratioHeight] =
-            ratioMap[state.ratio];
+            state.mode === "story"
+                ? (storyRatio === "9:16" ? [9, 16] : [16, 9])
+                : ratioMap[state.ratio];
 
 const html = `<!DOCTYPE html>
 <html lang="ko">
