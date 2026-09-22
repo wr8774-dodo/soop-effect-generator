@@ -3926,6 +3926,23 @@ function createIframeCode(publicUrl) {
     const [widthRatio, heightRatio] =
         ratioMap[state.ratio];
 
+    /* 스토리만 SOOP 바깥 컨테이너까지 선택 비율을 적용.
+       일반/폴라로이드는 기존 iframe 코드를 그대로 유지합니다. */
+    if (state.mode === "story") {
+        const maxWidth =
+            state.ratio === "9/16"
+                ? "562.5px"
+                : "1000px";
+
+        return `<div style="width:100%; max-width:${maxWidth}; margin:0 auto; position:relative; aspect-ratio:${widthRatio}/${heightRatio};" data-soop-custom-block="true">
+  <iframe
+    src="${publicUrl}"
+    style="display:block; width:100%; height:100%; margin:0; padding:0; border:0;"
+    frameborder="0">
+  </iframe>
+</div>`;
+    }
+
     return `<iframe
   src="${publicUrl}"
   width="100%"
