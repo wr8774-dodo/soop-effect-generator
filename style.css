@@ -1768,3 +1768,4 @@ body.authenticated .login-gate {
 .story-send-icon{font-size:27px;transform:rotate(-25deg)}
 .story-counter{bottom:62px}
 @media(max-width:650px){.story-profile-settings{grid-template-columns:1fr}}
+.story-ratio-choice{margin-bottom:14px}.story-ratio-choice>span{display:block;margin-bottom:8px;color:#cfd2da;font-size:13px}.story-ratio-buttons{display:flex;gap:8px}.story-ratio-button{padding:9px 14px;border:1px solid #3c414d;border-radius:9px;background:#15171d;color:#ddd;cursor:pointer}.story-ratio-button.active{border-color:var(--accent);background:rgba(128,103,255,.18);color:#fff}.story-preview[data-story-ratio="16:9"]{aspect-ratio:16/9}.story-preview[data-story-ratio="9:16"]{aspect-ratio:9/16}.story-upload-label.drag-over,.story-profile-upload.drag-over{border-color:var(--accent)!important;background:rgba(128,103,255,.12)!important}

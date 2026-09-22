@@ -2201,6 +2201,7 @@ storyPreviewImage=document.getElementById("storyPreviewImage"),storyProgress=doc
 storyPrev=document.getElementById("storyPrev"),storyNext=document.getElementById("storyNext"),
 storyCounter=document.getElementById("storyCounter"),storyEmpty=document.getElementById("storyEmpty"),
 storyReplay=document.getElementById("storyReplay"),
+storyRatioButtons=document.querySelectorAll(".story-ratio-button"),
 storyProfilePhoto=document.getElementById("storyProfilePhoto"),
 storyProfileName=document.getElementById("storyProfileName"),
 storyProfilePreview=document.getElementById("storyProfilePreview"),
@@ -2212,6 +2213,19 @@ function getStoryPhotos(){return storyState.slots.filter(slot=>slot&&slot.src);}
 
 function stopStoryTimer(){if(storyState.timer){clearTimeout(storyState.timer);storyState.timer=null;}}
 
+async function compressStoryImage(file,maxLongSide=2200,quality=.86){
+ const raw=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(file);});
+ const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=raw;});
+ const scale=Math.min(1,maxLongSide/Math.max(img.naturalWidth,img.naturalHeight));
+ const c=document.createElement("canvas");c.width=Math.max(1,Math.round(img.naturalWidth*scale));c.height=Math.max(1,Math.round(img.naturalHeight*scale));
+ c.getContext("2d",{alpha:false}).drawImage(img,0,0,c.width,c.height);
+ return c.toDataURL("image/jpeg",quality);
+}
+async function setStorySlotFile(slot,file){
+ if(!file||!file.type.startsWith("image/"))return;
+ try{slot.src=await compressStoryImage(file,2200,.86);slot.name=file.name;slot.x=0;slot.y=0;slot.zoom=1;const photos=getStoryPhotos();storyState.index=Math.max(0,photos.findIndex(p=>p===slot));renderStorySlots();showStoryIndex(storyState.index,"next");}
+ catch(e){console.error(e);alert("사진을 불러오지 못했습니다.");}
+}
 function createStorySlot(photo=null){
     const id=Date.now().toString(36)+Math.random().toString(36).slice(2);
     storyState.slots.push(photo||{id,src:"",name:"",x:0,y:0,zoom:1});
@@ -2232,24 +2246,10 @@ function renderStorySlots(){
         const title=document.createElement("div");title.className="story-upload-title";title.textContent=`사진 ${slotIndex+1}`;
         const name=document.createElement("div");name.className="story-upload-name";name.textContent=slot.name||"클릭해서 사진 선택";
         const input=document.createElement("input");input.type="file";input.accept="image/*";
-        input.addEventListener("change",async e=>{
-            const file=e.target.files&&e.target.files[0];if(!file)return;
-            if(!file.type.startsWith("image/")){
-                alert("이미지 파일을 선택해주세요.");
-                input.value="";
-                return;
-            }
-            const src=await new Promise((resolve,reject)=>{
-                const reader=new FileReader();
-                reader.onload=()=>resolve(reader.result);
-                reader.onerror=()=>reject(reader.error);
-                reader.readAsDataURL(file);
-            });
-            slot.src=src;slot.name=file.name;slot.x=0;slot.y=0;slot.zoom=1;
-            const photos=getStoryPhotos();
-            storyState.index=Math.max(0,photos.findIndex(p=>p===slot));
-            renderStorySlots();showStoryIndex(storyState.index,"next");
-        });
+        input.addEventListener("change",async e=>{const file=e.target.files&&e.target.files[0];await setStorySlotFile(slot,file);input.value="";});
+        ["dragenter","dragover"].forEach(t=>label.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();label.classList.add("drag-over");}));
+        ["dragleave","drop"].forEach(t=>label.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();label.classList.remove("drag-over");}));
+        label.addEventListener("drop",async e=>{const file=Array.from(e.dataTransfer.files||[]).find(f=>f.type.startsWith("image/"));if(file)await setStorySlotFile(slot,file);});
         label.append(thumb,icon,title,name,input);wrap.appendChild(label);
         if(storyState.slots.length>3){
             const remove=document.createElement("button");remove.type="button";remove.className="story-remove-photo";remove.textContent="이 칸 삭제";
@@ -2328,24 +2328,18 @@ storyPreview.addEventListener("pointermove",e=>{if(!storyState.drag)return;const
 storyPreview.addEventListener("pointerup",()=>storyState.drag=false);storyPreview.addEventListener("pointercancel",()=>storyState.drag=false);
 
 
+let storyRatio="9:16";storyPreview.dataset.storyRatio=storyRatio;
+storyRatioButtons.forEach(b=>b.addEventListener("click",()=>{storyRatio=b.dataset.storyRatio;storyRatioButtons.forEach(x=>x.classList.toggle("active",x===b));storyPreview.dataset.storyRatio=storyRatio;}));
 let storyProfileSrc="";
 
 storyProfileName.addEventListener("input",()=>{
     storyProfileNamePreview.textContent=storyProfileName.value.trim()||"profile_name";
 });
 
-storyProfilePhoto.addEventListener("change",async e=>{
-    const file=e.target.files&&e.target.files[0];
-    if(!file)return;
-    if(!file.type.startsWith("image/"))return;
-    storyProfileSrc=await new Promise((resolve,reject)=>{
-        const reader=new FileReader();
-        reader.onload=()=>resolve(reader.result);
-        reader.onerror=()=>reject(reader.error);
-        reader.readAsDataURL(file);
-    });
-    storyProfilePreview.src=storyProfileSrc;
-});
+storyProfilePhoto.addEventListener("change",async e=>{const file=e.target.files&&e.target.files[0];if(!file||!file.type.startsWith("image/"))return;try{storyProfileSrc=await compressStoryImage(file,512,.84);storyProfilePreview.src=storyProfileSrc;storyProfilePhoto.value="";}catch(error){console.error(error);alert("프로필 사진을 불러오지 못했습니다.");}});
+const storyProfileUpload=storyProfilePhoto.closest(".story-profile-upload");
+if(storyProfileUpload){["dragenter","dragover"].forEach(t=>storyProfileUpload.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();storyProfileUpload.classList.add("drag-over");}));["dragleave","drop"].forEach(t=>storyProfileUpload.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();storyProfileUpload.classList.remove("drag-over");}));storyProfileUpload.addEventListener("drop",async e=>{const file=Array.from(e.dataTransfer.files||[]).find(f=>f.type.startsWith("image/"));if(file){storyProfileSrc=await compressStoryImage(file,512,.84);storyProfilePreview.src=storyProfileSrc;}});}
+
 
 for(let i=0;i<2;i++)createStorySlot();
 showStoryIndex(0);
