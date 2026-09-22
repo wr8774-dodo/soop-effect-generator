@@ -1728,3 +1728,18 @@ body.authenticated .login-gate {
 @keyframes storySlideNext{from{opacity:.45;transform:translate(-38%,-50%) scale(var(--story-zoom,1))}to{opacity:1;transform:translate(-50%,-50%) scale(var(--story-zoom,1))}}
 @keyframes storySlidePrev{from{opacity:.45;transform:translate(-62%,-50%) scale(var(--story-zoom,1))}to{opacity:1;transform:translate(-50%,-50%) scale(var(--story-zoom,1))}}
 @keyframes storyZoom{from{opacity:.45;transform:translate(-50%,-50%) scale(calc(var(--story-zoom,1)*.94))}to{opacity:1;transform:translate(-50%,-50%) scale(var(--story-zoom,1))}}
+
+/* 스토리 개별 사진 업로드 */
+.story-upload-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
+.story-upload-slot{position:relative;min-width:0}
+.story-upload-label{display:flex;min-height:132px;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px;border:1px dashed #454b59;border-radius:12px;background:#121419;cursor:pointer;text-align:center;overflow:hidden}
+.story-upload-label:hover{border-color:var(--accent)}
+.story-upload-label input{display:none}
+.story-upload-title{font-weight:700;color:#fff}
+.story-upload-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#9ca2b1;font-size:12px}
+.story-upload-thumb{width:72px;height:72px;object-fit:cover;border-radius:9px;display:none}
+.story-upload-slot.has-photo .story-upload-thumb{display:block}
+.story-upload-slot.has-photo .story-upload-icon{display:none}
+.story-remove-photo{width:100%;margin-top:7px;padding:8px 10px;border:1px solid #3c414d;border-radius:8px;background:#1a1d24;color:#ddd;cursor:pointer}
+.story-add-photo{margin-top:14px}
+@media(max-width:760px){.story-upload-slots{grid-template-columns:1fr}}

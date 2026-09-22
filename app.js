@@ -2145,7 +2145,7 @@ const optimized =
 ========================================================= */
 
 function validateProject() {
-    if (state.mode === "story" && storyState.photos.length < 2) {
+    if (state.mode === "story" && getStoryPhotos().length < 2) {
         return { ok: false, message: "스토리 사진을 2장 이상 선택해주세요." };
     }
 
@@ -2191,7 +2191,9 @@ function validateProject() {
 
 
 /* 스토리 효과 */
-const storyPhotos=document.getElementById("storyPhotos"),storyPhotoList=document.getElementById("storyPhotoList"),
+const storyUploadSlots=document.getElementById("storyUploadSlots"),
+storyAddPhoto=document.getElementById("storyAddPhoto"),
+storyPhotoList=document.getElementById("storyPhotoList"),
 storyDuration=document.getElementById("storyDuration"),storyTransition=document.getElementById("storyTransition"),
 storyAutoPlay=document.getElementById("storyAutoPlay"),storyZoom=document.getElementById("storyZoom"),
 storyReset=document.getElementById("storyReset"),storyPreview=document.getElementById("storyPreview"),
@@ -2199,24 +2201,120 @@ storyPreviewImage=document.getElementById("storyPreviewImage"),storyProgress=doc
 storyPrev=document.getElementById("storyPrev"),storyNext=document.getElementById("storyNext"),
 storyCounter=document.getElementById("storyCounter"),storyEmpty=document.getElementById("storyEmpty"),
 storyReplay=document.getElementById("storyReplay");
-const storyState={photos:[],index:0,timer:null,drag:false,startX:0,startY:0,baseX:0,baseY:0};
+
+const storyState={slots:[],index:0,timer:null,drag:false,startX:0,startY:0,baseX:0,baseY:0};
+
+function getStoryPhotos(){return storyState.slots.filter(slot=>slot&&slot.src);}
+
 function stopStoryTimer(){if(storyState.timer){clearTimeout(storyState.timer);storyState.timer=null;}}
-function renderStoryPhotoList(){storyPhotoList.innerHTML="";storyState.photos.forEach((p,i)=>{const b=document.createElement("button");b.type="button";b.className="story-photo-chip"+(i===storyState.index?" active":"");b.textContent=`${i+1}. ${p.name}`;b.addEventListener("click",()=>showStoryIndex(i,i>=storyState.index?"next":"prev"));storyPhotoList.appendChild(b);});}
-function renderStoryProgress(){storyProgress.innerHTML="";storyState.photos.forEach((_,i)=>{const b=document.createElement("div");b.className="story-progress-item";if(i<storyState.index)b.classList.add("done");if(i===storyState.index)b.classList.add("current");const f=document.createElement("div");f.className="story-progress-fill";f.style.setProperty("--story-duration",`${storyDuration.value}s`);b.appendChild(f);storyProgress.appendChild(b);if(i===storyState.index&&storyAutoPlay.checked&&storyState.photos.length>1)requestAnimationFrame(()=>f.classList.add("playing"));});}
-function applyStoryTransform(){const p=storyState.photos[storyState.index];if(!p)return;const z=Number(p.zoom||1);storyPreviewImage.style.setProperty("--story-zoom",z);storyPreviewImage.style.transform=`translate(calc(-50% + ${p.x||0}px),calc(-50% + ${p.y||0}px)) scale(${z})`;storyZoom.value=z;}
-function restartStoryTimer(){stopStoryTimer();renderStoryProgress();if(state.mode!=="story"||!storyAutoPlay.checked||storyState.photos.length<2)return;storyState.timer=setTimeout(()=>{if(storyState.index<storyState.photos.length-1)showStoryIndex(storyState.index+1,"next");},Number(storyDuration.value)*1000);}
-function showStoryIndex(i,d="next"){if(!storyState.photos.length){storyCounter.textContent="0 / 0";storyEmpty.classList.remove("hidden");return;}storyState.index=Math.max(0,Math.min(storyState.photos.length-1,i));const p=storyState.photos[storyState.index];storyPreviewImage.src=p.src;storyEmpty.classList.add("hidden");storyCounter.textContent=`${storyState.index+1} / ${storyState.photos.length}`;storyPreviewImage.classList.remove("story-fade","story-slide-next","story-slide-prev","story-zoom");void storyPreviewImage.offsetWidth;if(storyTransition.value==="slide")storyPreviewImage.classList.add(d==="prev"?"story-slide-prev":"story-slide-next");else if(storyTransition.value==="zoom")storyPreviewImage.classList.add("story-zoom");else storyPreviewImage.classList.add("story-fade");applyStoryTransform();renderStoryPhotoList();restartStoryTimer();}
-storyPhotos.addEventListener("change",async e=>{stopStoryTimer();storyState.photos=[];for(const file of Array.from(e.target.files||[])){const src=await readFileAsDataURL(file);storyState.photos.push({name:file.name,src,x:0,y:0,zoom:1});}storyState.index=0;showStoryIndex(0);});
+
+function createStorySlot(photo=null){
+    const id=Date.now().toString(36)+Math.random().toString(36).slice(2);
+    storyState.slots.push(photo||{id,src:"",name:"",x:0,y:0,zoom:1});
+    renderStorySlots();
+}
+
+function renderStorySlots(){
+    storyUploadSlots.innerHTML="";
+    storyState.slots.forEach((slot,slotIndex)=>{
+        const wrap=document.createElement("div");
+        wrap.className="story-upload-slot"+(slot.src?" has-photo":"");
+        const label=document.createElement("label");
+        label.className="story-upload-label";
+        const thumb=document.createElement("img");
+        thumb.className="story-upload-thumb";thumb.alt="";
+        if(slot.src)thumb.src=slot.src;
+        const icon=document.createElement("div");icon.className="story-upload-icon";icon.textContent="🖼️";
+        const title=document.createElement("div");title.className="story-upload-title";title.textContent=`사진 ${slotIndex+1}`;
+        const name=document.createElement("div");name.className="story-upload-name";name.textContent=slot.name||"클릭해서 사진 선택";
+        const input=document.createElement("input");input.type="file";input.accept="image/*";
+        input.addEventListener("change",async e=>{
+            const file=e.target.files&&e.target.files[0];if(!file)return;
+            const src=await readFileAsDataURL(file);
+            slot.src=src;slot.name=file.name;slot.x=0;slot.y=0;slot.zoom=1;
+            const photos=getStoryPhotos();
+            storyState.index=Math.max(0,photos.findIndex(p=>p===slot));
+            renderStorySlots();showStoryIndex(storyState.index,"next");
+        });
+        label.append(thumb,icon,title,name,input);wrap.appendChild(label);
+        if(storyState.slots.length>3){
+            const remove=document.createElement("button");remove.type="button";remove.className="story-remove-photo";remove.textContent="이 칸 삭제";
+            remove.addEventListener("click",()=>{
+                storyState.slots.splice(slotIndex,1);
+                const photos=getStoryPhotos();storyState.index=Math.min(storyState.index,Math.max(0,photos.length-1));
+                renderStorySlots();showStoryIndex(storyState.index,"next");
+            });
+            wrap.appendChild(remove);
+        }
+        storyUploadSlots.appendChild(wrap);
+    });
+}
+
+function renderStoryPhotoList(){
+    if(!storyPhotoList)return;
+    storyPhotoList.innerHTML="";
+    getStoryPhotos().forEach((p,i)=>{
+        const b=document.createElement("button");b.type="button";
+        b.className="story-photo-chip"+(i===storyState.index?" active":"");
+        b.textContent=`${i+1}. ${p.name}`;
+        b.addEventListener("click",()=>showStoryIndex(i,i>=storyState.index?"next":"prev"));
+        storyPhotoList.appendChild(b);
+    });
+}
+
+function renderStoryProgress(){
+    const photos=getStoryPhotos();storyProgress.innerHTML="";
+    photos.forEach((_,i)=>{
+        const b=document.createElement("div");b.className="story-progress-item";
+        if(i<storyState.index)b.classList.add("done");if(i===storyState.index)b.classList.add("current");
+        const f=document.createElement("div");f.className="story-progress-fill";f.style.setProperty("--story-duration",`${storyDuration.value}s`);
+        b.appendChild(f);storyProgress.appendChild(b);
+        if(i===storyState.index&&storyAutoPlay.checked&&photos.length>1)requestAnimationFrame(()=>f.classList.add("playing"));
+    });
+}
+
+function applyStoryTransform(){
+    const p=getStoryPhotos()[storyState.index];if(!p)return;
+    const z=Number(p.zoom||1);storyPreviewImage.style.setProperty("--story-zoom",z);
+    storyPreviewImage.style.transform=`translate(calc(-50% + ${p.x||0}px),calc(-50% + ${p.y||0}px)) scale(${z})`;storyZoom.value=z;
+}
+
+function restartStoryTimer(){
+    stopStoryTimer();renderStoryProgress();const photos=getStoryPhotos();
+    if(state.mode!=="story"||!storyAutoPlay.checked||photos.length<2)return;
+    storyState.timer=setTimeout(()=>{if(storyState.index<photos.length-1)showStoryIndex(storyState.index+1,"next");},Number(storyDuration.value)*1000);
+}
+
+function showStoryIndex(i,d="next"){
+    const photos=getStoryPhotos();
+    if(!photos.length){
+        storyState.index=0;storyPreviewImage.removeAttribute("src");storyPreviewImage.style.display="none";
+        storyCounter.textContent="0 / 0";storyEmpty.classList.remove("hidden");renderStoryProgress();renderStoryPhotoList();return;
+    }
+    storyState.index=Math.max(0,Math.min(photos.length-1,i));const p=photos[storyState.index];
+    storyPreviewImage.style.display="block";storyPreviewImage.src=p.src;storyEmpty.classList.add("hidden");
+    storyCounter.textContent=`${storyState.index+1} / ${photos.length}`;
+    storyPreviewImage.classList.remove("story-fade","story-slide-next","story-slide-prev","story-zoom");void storyPreviewImage.offsetWidth;
+    if(storyTransition.value==="slide")storyPreviewImage.classList.add(d==="prev"?"story-slide-prev":"story-slide-next");
+    else if(storyTransition.value==="zoom")storyPreviewImage.classList.add("story-zoom");else storyPreviewImage.classList.add("story-fade");
+    applyStoryTransform();renderStoryPhotoList();restartStoryTimer();
+}
+
+storyAddPhoto.addEventListener("click",()=>createStorySlot());
 storyPrev.addEventListener("click",e=>{e.stopPropagation();if(storyState.index>0)showStoryIndex(storyState.index-1,"prev");else restartStoryTimer();});
-storyNext.addEventListener("click",e=>{e.stopPropagation();if(storyState.index<storyState.photos.length-1)showStoryIndex(storyState.index+1,"next");else restartStoryTimer();});
-storyReplay.addEventListener("click",()=>showStoryIndex(0));storyDuration.addEventListener("input",restartStoryTimer);storyAutoPlay.addEventListener("change",restartStoryTimer);
+storyNext.addEventListener("click",e=>{e.stopPropagation();const p=getStoryPhotos();if(storyState.index<p.length-1)showStoryIndex(storyState.index+1,"next");else restartStoryTimer();});
+storyReplay.addEventListener("click",()=>showStoryIndex(0));
+storyDuration.addEventListener("input",restartStoryTimer);storyAutoPlay.addEventListener("change",restartStoryTimer);
 storyTransition.addEventListener("change",()=>showStoryIndex(storyState.index));
-storyZoom.addEventListener("input",()=>{const p=storyState.photos[storyState.index];if(p){p.zoom=Number(storyZoom.value);applyStoryTransform();}});
-storyReset.addEventListener("click",()=>{const p=storyState.photos[storyState.index];if(p){p.x=0;p.y=0;p.zoom=1;applyStoryTransform();}});
+storyZoom.addEventListener("input",()=>{const p=getStoryPhotos()[storyState.index];if(p){p.zoom=Number(storyZoom.value);applyStoryTransform();}});
+storyReset.addEventListener("click",()=>{const p=getStoryPhotos()[storyState.index];if(p){p.x=0;p.y=0;p.zoom=1;applyStoryTransform();}});
 storyPreview.addEventListener("keydown",e=>{if(e.key==="ArrowLeft")storyPrev.click();if(e.key==="ArrowRight")storyNext.click();});
-storyPreview.addEventListener("pointerdown",e=>{if(e.target.closest(".story-nav"))return;const p=storyState.photos[storyState.index];if(!p)return;storyState.drag=true;storyState.startX=e.clientX;storyState.startY=e.clientY;storyState.baseX=p.x||0;storyState.baseY=p.y||0;storyPreview.setPointerCapture(e.pointerId);});
-storyPreview.addEventListener("pointermove",e=>{if(!storyState.drag)return;const p=storyState.photos[storyState.index];if(!p)return;p.x=storyState.baseX+e.clientX-storyState.startX;p.y=storyState.baseY+e.clientY-storyState.startY;applyStoryTransform();});
+storyPreview.addEventListener("pointerdown",e=>{if(e.target.closest(".story-nav"))return;const p=getStoryPhotos()[storyState.index];if(!p)return;storyState.drag=true;storyState.startX=e.clientX;storyState.startY=e.clientY;storyState.baseX=p.x||0;storyState.baseY=p.y||0;storyPreview.setPointerCapture(e.pointerId);});
+storyPreview.addEventListener("pointermove",e=>{if(!storyState.drag)return;const p=getStoryPhotos()[storyState.index];if(!p)return;p.x=storyState.baseX+e.clientX-storyState.startX;p.y=storyState.baseY+e.clientY-storyState.startY;applyStoryTransform();});
 storyPreview.addEventListener("pointerup",()=>storyState.drag=false);storyPreview.addEventListener("pointercancel",()=>storyState.drag=false);
+
+for(let i=0;i<3;i++)createStorySlot();
+showStoryIndex(0);
 
 function createProjectSettings() {
 
@@ -2688,7 +2786,7 @@ ${clone.outerHTML}
         const prev=storyPreview.querySelector(".story-nav-prev");
         const next=storyPreview.querySelector(".story-nav-next");
         const empty=storyPreview.querySelector(".story-empty");
-        const photos=${JSON.stringify(storyState.photos.map(p=>({src:p.src,x:p.x||0,y:p.y||0,zoom:p.zoom||1})))};
+        const photos=${JSON.stringify(getStoryPhotos().map(p=>({src:p.src,x:p.x||0,y:p.y||0,zoom:p.zoom||1})))};
         const duration=${Number(storyDuration.value)};
         const transition=${JSON.stringify(storyTransition.value)};
         const autoPlay=${storyAutoPlay.checked ? "true" : "false"};
