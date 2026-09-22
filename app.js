@@ -2202,6 +2202,7 @@ storyPrev=document.getElementById("storyPrev"),storyNext=document.getElementById
 storyCounter=document.getElementById("storyCounter"),storyEmpty=document.getElementById("storyEmpty"),
 storyReplay=document.getElementById("storyReplay"),
 storyRatioButtons=document.querySelectorAll(".story-ratio-button"),
+sharedRatioButtons=document.querySelectorAll("[data-ratio]"),
 storyProfilePhoto=document.getElementById("storyProfilePhoto"),
 storyProfileName=document.getElementById("storyProfileName"),
 storyProfilePreview=document.getElementById("storyProfilePreview"),
@@ -2328,18 +2329,13 @@ storyPreview.addEventListener("pointermove",e=>{if(!storyState.drag)return;const
 storyPreview.addEventListener("pointerup",()=>storyState.drag=false);storyPreview.addEventListener("pointercancel",()=>storyState.drag=false);
 
 
-let storyRatio="9:16";storyPreview.dataset.storyRatio=storyRatio;
+let storyRatio="9:16";
 function applyStoryRatio(){
     storyPreview.dataset.storyRatio=storyRatio;
     storyPreview.style.aspectRatio=storyRatio==="9:16"?"9 / 16":"16 / 9";
     storyPreview.style.height="auto";
 }
 applyStoryRatio();
-storyRatioButtons.forEach(b=>b.addEventListener("click",()=>{
-    storyRatio=b.dataset.storyRatio;
-    storyRatioButtons.forEach(x=>x.classList.toggle("active",x===b));
-    applyStoryRatio();
-}));
 let storyProfileSrc="";
 
 storyProfileName.addEventListener("input",()=>{
@@ -4027,3 +4023,42 @@ document.addEventListener("click",()=>setTimeout(syncStoryRatioUI,0));
 syncStoryRatioUI();
 
 
+
+/* v12: 2번 비율을 모드별 단일 비율 선택기로 사용 */
+(function(){
+ const buttons=[...document.querySelectorAll("[data-ratio]")];
+ if(!buttons.length)return;
+ const labels=new Map(buttons.map(b=>[b,b.textContent]));
+ function setActive(value){
+   buttons.forEach(b=>b.classList.toggle("active",b.dataset.ratio===value));
+ }
+ function syncRatioSection(){
+   if(state.mode==="story"){
+     buttons.forEach((b,i)=>{
+       if(i===0){b.style.display="";b.dataset.ratio="9:16";b.textContent="9:16 세로";}
+       else if(i===1){b.style.display="";b.dataset.ratio="16:9";b.textContent="16:9 가로";}
+       else b.style.display="none";
+     });
+     setActive(storyRatio);
+   }else{
+     const vals=["16:9","4:5","2:3"];
+     buttons.forEach((b,i)=>{
+       b.style.display="";
+       b.dataset.ratio=vals[i];
+       b.textContent=vals[i];
+     });
+     setActive(state.ratio);
+   }
+ }
+ buttons.forEach(b=>b.addEventListener("click",()=>{
+   setTimeout(()=>{
+     if(state.mode==="story"){
+       storyRatio=b.dataset.ratio==="16:9"?"16:9":"9:16";
+       applyStoryRatio();
+       setActive(storyRatio);
+     }
+   },0);
+ }));
+ document.addEventListener("click",()=>setTimeout(syncRatioSection,0));
+ syncRatioSection();
+})();
