@@ -1789,9 +1789,6 @@ body.authenticated .login-gate {
     width:min(430px,100%);
 }
 
-/* v9: 스토리 모드에서는 공통 출력 비율을 사용하지 않음 */
-#outputRatioSection.story-hidden{display:none !important;}
 
-/* v10: 스토리 선택 시 2번 출력비율 카드 전체 숨김 */
-#outputRatioSection.story-hidden{display:none!important;}
-body:has(#storyMode:not(.hidden)) #outputRatioSection{display:none!important;}
+/* v11: 상위 레이아웃은 절대 숨기지 않음.
+   스토리 최종 출력비율은 4번의 스토리 비율만 사용. */
