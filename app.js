@@ -389,7 +389,7 @@ const copyIframe =
 ========================================================= */
 
 const ratioMap = {
-    "9:16":[9,16],
+    "9/16": [9, 16],
     "16/9": [16, 9],
     "4/5": [4, 5],
     "2/3": [2, 3]
@@ -4031,7 +4031,7 @@ syncStoryRatioUI();
 
  function sync(){
    if(state.mode==="story"){
-     const vals=["9:16","16:9"];
+     const vals=["9/16","16/9"];
      buttons.forEach((b,i)=>{
        if(i<2){
          b.style.display="";
@@ -4041,8 +4041,8 @@ syncStoryRatioUI();
          b.style.display="none";
        }
      });
-     if(state.ratio!=="9:16" && state.ratio!=="16:9") state.ratio="9:16";
-     storyRatio=state.ratio;
+     if(state.ratio!=="9/16" && state.ratio!=="16/9") state.ratio="9/16";
+     storyRatio=state.ratio==="9/16"?"9:16":"16:9";
      if(typeof applyStoryRatio==="function") applyStoryRatio();
    }else{
      const vals=["16:9","4:5","2:3"];
@@ -4059,7 +4059,7 @@ syncStoryRatioUI();
  buttons.forEach(b=>b.addEventListener("click",()=>{
    if(state.mode==="story"){
      state.ratio=b.dataset.ratio;
-     storyRatio=state.ratio;
+     storyRatio=state.ratio==="9/16"?"9:16":"16:9";
      if(typeof applyStoryRatio==="function") applyStoryRatio();
    }
    setTimeout(sync,0);
