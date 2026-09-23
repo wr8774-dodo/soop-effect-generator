@@ -389,7 +389,6 @@ const copyIframe =
 ========================================================= */
 
 const ratioMap = {
-    "9/16": [9, 16],
     "16/9": [16, 9],
     "4/5": [4, 5],
     "2/3": [2, 3]
@@ -2203,7 +2202,6 @@ storyPrev=document.getElementById("storyPrev"),storyNext=document.getElementById
 storyCounter=document.getElementById("storyCounter"),storyEmpty=document.getElementById("storyEmpty"),
 storyReplay=document.getElementById("storyReplay"),
 storyRatioButtons=document.querySelectorAll(".story-ratio-button"),
-sharedRatioButtons=document.querySelectorAll("[data-ratio]"),
 storyProfilePhoto=document.getElementById("storyProfilePhoto"),
 storyProfileName=document.getElementById("storyProfileName"),
 storyProfilePreview=document.getElementById("storyProfilePreview"),
@@ -2330,13 +2328,18 @@ storyPreview.addEventListener("pointermove",e=>{if(!storyState.drag)return;const
 storyPreview.addEventListener("pointerup",()=>storyState.drag=false);storyPreview.addEventListener("pointercancel",()=>storyState.drag=false);
 
 
-let storyRatio="9:16";
+let storyRatio="9:16";storyPreview.dataset.storyRatio=storyRatio;
 function applyStoryRatio(){
     storyPreview.dataset.storyRatio=storyRatio;
     storyPreview.style.aspectRatio=storyRatio==="9:16"?"9 / 16":"16 / 9";
     storyPreview.style.height="auto";
 }
 applyStoryRatio();
+storyRatioButtons.forEach(b=>b.addEventListener("click",()=>{
+    storyRatio=b.dataset.storyRatio;
+    storyRatioButtons.forEach(x=>x.classList.toggle("active",x===b));
+    applyStoryRatio();
+}));
 let storyProfileSrc="";
 
 storyProfileName.addEventListener("input",()=>{
@@ -2616,7 +2619,9 @@ for (
         }
 
         const [ratioWidth, ratioHeight] =
-            ratioMap[state.ratio];
+            state.mode === "story"
+                ? (storyRatio === "9:16" ? [9, 16] : [16, 9])
+                : ratioMap[state.ratio];
 
 const html = `<!DOCTYPE html>
 <html lang="ko">
@@ -3926,23 +3931,6 @@ function createIframeCode(publicUrl) {
     const [widthRatio, heightRatio] =
         ratioMap[state.ratio];
 
-    /* 스토리만 SOOP 바깥 컨테이너까지 선택 비율을 적용.
-       일반/폴라로이드는 기존 iframe 코드를 그대로 유지합니다. */
-    if (state.mode === "story") {
-        const maxWidth =
-            state.ratio === "9/16"
-                ? "562.5px"
-                : "1000px";
-
-        return `<div style="width:100%; max-width:${maxWidth}; margin:0 auto; position:relative; aspect-ratio:${widthRatio}/${heightRatio};" data-soop-custom-block="true">
-  <iframe
-    src="${publicUrl}"
-    style="display:block; width:100%; height:100%; margin:0; padding:0; border:0;"
-    frameborder="0">
-  </iframe>
-</div>`;
-    }
-
     return `<iframe
   src="${publicUrl}"
   width="100%"
@@ -4039,49 +4027,3 @@ document.addEventListener("click",()=>setTimeout(syncStoryRatioUI,0));
 syncStoryRatioUI();
 
 
-
-
-/* v13: 스토리도 기존 출력비율(state.ratio) 경로를 그대로 사용 */
-(function(){
- const buttons=[...document.querySelectorAll("[data-ratio]")];
- if(!buttons.length)return;
-
- function sync(){
-   if(state.mode==="story"){
-     const vals=["9/16","16/9"];
-     buttons.forEach((b,i)=>{
-       if(i<2){
-         b.style.display="";
-         b.dataset.ratio=vals[i];
-         b.textContent=i===0?"9:16 세로":"16:9 가로";
-       }else{
-         b.style.display="none";
-       }
-     });
-     if(state.ratio!=="9/16" && state.ratio!=="16/9") state.ratio="9/16";
-     storyRatio=state.ratio==="9/16"?"9:16":"16:9";
-     if(typeof applyStoryRatio==="function") applyStoryRatio();
-   }else{
-     const vals=["16:9","4:5","2:3"];
-     buttons.forEach((b,i)=>{
-       b.style.display="";
-       b.dataset.ratio=vals[i];
-       b.textContent=vals[i];
-     });
-     if(!vals.includes(state.ratio)) state.ratio="16:9";
-   }
-   buttons.forEach(b=>b.classList.toggle("active",b.dataset.ratio===state.ratio));
- }
-
- buttons.forEach(b=>b.addEventListener("click",()=>{
-   if(state.mode==="story"){
-     state.ratio=b.dataset.ratio;
-     storyRatio=state.ratio==="9/16"?"9:16":"16:9";
-     if(typeof applyStoryRatio==="function") applyStoryRatio();
-   }
-   setTimeout(sync,0);
- }));
-
- document.addEventListener("click",()=>setTimeout(sync,0));
- sync();
-})();
