@@ -420,6 +420,10 @@ function applyRatio() {
     polaroidPreview.style.aspectRatio =
         ratio;
 
+    if (typeof fisheyePreview !== "undefined" && fisheyePreview) {
+        fisheyePreview.style.aspectRatio = ratio;
+    }
+
     requestAnimationFrame(() => {
         updateNormalCrop();
         updateNormalPreview();
@@ -452,6 +456,12 @@ modeButtons.forEach(button => {
             normalMode.classList.toggle("hidden", state.mode !== "normal");
             polaroidMode.classList.toggle("hidden", state.mode !== "polaroid");
             storyMode.classList.toggle("hidden", state.mode !== "story");
+            fisheyeMode.classList.toggle("hidden", state.mode !== "fisheye");
+
+            if (state.mode === "fisheye") {
+                fisheyePreview.style.aspectRatio = getRatioCSS();
+                requestAnimationFrame(renderFisheye);
+            }
 
             if (state.mode === "polaroid") {
                 requestAnimationFrame(() => {
@@ -2140,11 +2150,111 @@ const optimized =
 
     return optimized;
 }
+
+/* =========================================================
+   어안렌즈 효과 - 독립 모드
+========================================================= */
+const fisheyeMode=document.getElementById("fisheyeMode");
+const fisheyePhoto=document.getElementById("fisheyePhoto");
+const fisheyeStrength=document.getElementById("fisheyeStrength");
+const fisheyeRadius=document.getElementById("fisheyeRadius");
+const fisheyeStrengthValue=document.getElementById("fisheyeStrengthValue");
+const fisheyeRadiusValue=document.getElementById("fisheyeRadiusValue");
+const fisheyeCenter=document.getElementById("fisheyeCenter");
+const fisheyePreview=document.getElementById("fisheyePreview");
+const fisheyeCanvas=document.getElementById("fisheyeCanvas");
+const fisheyeEmpty=document.getElementById("fisheyeEmpty");
+const fisheyeBehaviorHelp=document.getElementById("fisheyeBehaviorHelp");
+const fisheyeBehaviorButtons=[...document.querySelectorAll(".fisheye-behavior")];
+
+const fisheyeState={src:"",strength:60,radius:75,cx:.5,cy:.5,behavior:"follow"};
+const fisheyeImage=new Image();
+let fisheyeRenderToken=0;
+
+fisheyePhoto.addEventListener("change",()=>{
+    const file=fisheyePhoto.files && fisheyePhoto.files[0];
+    readImageFile(file,src=>{
+        fisheyeState.src=src;
+        fisheyeState.cx=.5; fisheyeState.cy=.5;
+        fisheyeImage.onload=()=>{fisheyeEmpty.style.display="none";renderFisheye();};
+        fisheyeImage.src=src;
+    });
+});
+fisheyeStrength.addEventListener("input",()=>{
+    fisheyeState.strength=Number(fisheyeStrength.value);
+    fisheyeStrengthValue.textContent=String(fisheyeState.strength); renderFisheye();
+});
+fisheyeRadius.addEventListener("input",()=>{
+    fisheyeState.radius=Number(fisheyeRadius.value);
+    fisheyeRadiusValue.textContent=fisheyeState.radius+"%"; renderFisheye();
+});
+fisheyeCenter.addEventListener("click",()=>{fisheyeState.cx=.5;fisheyeState.cy=.5;renderFisheye();});
+fisheyeBehaviorButtons.forEach(btn=>btn.addEventListener("click",()=>{
+    fisheyeState.behavior=btn.dataset.fisheyeBehavior;
+    fisheyeBehaviorButtons.forEach(x=>x.classList.toggle("active",x===btn));
+    fisheyeBehaviorHelp.textContent=fisheyeState.behavior==="follow"
+        ?"마우스 또는 손가락 위치를 렌즈 중심이 따라갑니다."
+        :"제작할 때 정한 위치에 렌즈 중심이 고정됩니다.";
+}));
+
+function setFisheyeCenterFromEvent(ev){
+    const r=fisheyePreview.getBoundingClientRect();
+    const p=ev.touches?ev.touches[0]:ev;
+    if(!p||!r.width||!r.height)return;
+    fisheyeState.cx=Math.max(0,Math.min(1,(p.clientX-r.left)/r.width));
+    fisheyeState.cy=Math.max(0,Math.min(1,(p.clientY-r.top)/r.height));
+    renderFisheye();
+}
+fisheyePreview.addEventListener("pointermove",e=>{
+    if(fisheyeState.behavior==="follow" || (fisheyeState.behavior==="fixed" && e.buttons)) setFisheyeCenterFromEvent(e);
+});
+fisheyePreview.addEventListener("pointerdown",e=>{
+    if(fisheyeState.behavior==="fixed"){fisheyePreview.setPointerCapture?.(e.pointerId);setFisheyeCenterFromEvent(e);}
+});
+
+function renderFisheye(){
+    if(!fisheyeImage.naturalWidth||!fisheyePreview.clientWidth||!fisheyePreview.clientHeight)return;
+    const token=++fisheyeRenderToken;
+    const dpr=Math.min(window.devicePixelRatio||1,1.5);
+    const W=Math.max(1,Math.round(fisheyePreview.clientWidth*dpr));
+    const H=Math.max(1,Math.round(fisheyePreview.clientHeight*dpr));
+    if(fisheyeCanvas.width!==W||fisheyeCanvas.height!==H){fisheyeCanvas.width=W;fisheyeCanvas.height=H;}
+    const ctx=fisheyeCanvas.getContext("2d",{willReadFrequently:true});
+    const iw=fisheyeImage.naturalWidth, ih=fisheyeImage.naturalHeight;
+    const scale=Math.max(W/iw,H/ih), dw=iw*scale, dh=ih*scale, dx=(W-dw)/2,dy=(H-dh)/2;
+    ctx.clearRect(0,0,W,H); ctx.drawImage(fisheyeImage,dx,dy,dw,dh);
+    if(fisheyeState.strength<=0)return;
+    const src=ctx.getImageData(0,0,W,H), out=ctx.createImageData(W,H);
+    const s=src.data,d=out.data,cx=fisheyeState.cx*W,cy=fisheyeState.cy*H;
+    const R=Math.max(2,Math.min(W,H)*.5*(fisheyeState.radius/100));
+    const k=(fisheyeState.strength/100)*.78;
+    for(let y=0;y<H;y++){
+        for(let x=0;x<W;x++){
+            const vx=x-cx,vy=y-cy,r=Math.hypot(vx,vy),di=(y*W+x)*4;
+            let sx=x,sy=y;
+            if(r<R&&r>0){
+                const t=r/R;
+                const mapped=t*(1-k*(1-t)*(1-t));
+                const rr=(mapped*R)/r;
+                sx=Math.round(cx+vx*rr); sy=Math.round(cy+vy*rr);
+            }
+            sx=Math.max(0,Math.min(W-1,sx)); sy=Math.max(0,Math.min(H-1,sy));
+            const si=(sy*W+sx)*4;
+            d[di]=s[si];d[di+1]=s[si+1];d[di+2]=s[si+2];d[di+3]=s[si+3];
+        }
+    }
+    if(token===fisheyeRenderToken)ctx.putImageData(out,0,0);
+}
+
 /* =========================================================
    배포 전 검사
 ========================================================= */
 
 function validateProject() {
+    if (state.mode === "fisheye" && !fisheyeState.src) {
+        return { ok: false, message: "어안렌즈 사진을 선택해주세요." };
+    }
+
     if (state.mode === "story" && getStoryPhotos().length < 2) {
         return { ok: false, message: "스토리 사진을 2장 이상 선택해주세요." };
     }
@@ -2555,9 +2665,23 @@ exportButton.addEventListener("click", async () => {
                 ? normalPreview
                 : state.mode === "polaroid"
                     ? polaroidPreview
-                    : storyPreview;
+                    : state.mode === "fisheye"
+                        ? fisheyePreview
+                        : storyPreview;
 
         const clone = source.cloneNode(true);
+
+        if (state.mode === "fisheye") {
+            clone.innerHTML = `
+                <img id="fisheyeDeploySource" src="${fisheyeState.src}" alt="" style="display:none">
+                <canvas id="fisheyeDeployCanvas"></canvas>
+            `;
+            clone.dataset.fisheyeStrength = String(fisheyeState.strength);
+            clone.dataset.fisheyeRadius = String(fisheyeState.radius);
+            clone.dataset.fisheyeCx = String(fisheyeState.cx);
+            clone.dataset.fisheyeCy = String(fisheyeState.cy);
+            clone.dataset.fisheyeBehavior = fisheyeState.behavior;
+        }
 
         /*
          * 이미지가 data URL로 들어 있으므로 clone에도 그대로
@@ -3832,6 +3956,47 @@ ${clone.outerHTML}
     }
 
 })();
+
+        /* 어안렌즈 배포 동작 */
+        const fisheyeRoot=document.querySelector("#soop-effect-root > .fisheye-preview");
+        if(fisheyeRoot){
+            const c=fisheyeRoot.querySelector("#fisheyeDeployCanvas");
+            const img=fisheyeRoot.querySelector("#fisheyeDeploySource");
+            const ctx=c.getContext("2d",{willReadFrequently:true});
+            let cx=Number(fisheyeRoot.dataset.fisheyeCx||.5),cy=Number(fisheyeRoot.dataset.fisheyeCy||.5);
+            const strength=Number(fisheyeRoot.dataset.fisheyeStrength||60);
+            const radius=Number(fisheyeRoot.dataset.fisheyeRadius||75);
+            const behavior=fisheyeRoot.dataset.fisheyeBehavior||"follow";
+            function drawFish(){
+                if(!img.naturalWidth||!fisheyeRoot.clientWidth||!fisheyeRoot.clientHeight)return;
+                const W=Math.max(1,Math.round(fisheyeRoot.clientWidth));
+                const H=Math.max(1,Math.round(fisheyeRoot.clientHeight));
+                c.width=W;c.height=H;c.style.width="100%";c.style.height="100%";
+                const scale=Math.max(W/img.naturalWidth,H/img.naturalHeight);
+                const dw=img.naturalWidth*scale,dh=img.naturalHeight*scale,dx=(W-dw)/2,dy=(H-dh)/2;
+                ctx.clearRect(0,0,W,H);ctx.drawImage(img,dx,dy,dw,dh);
+                if(strength<=0)return;
+                const src=ctx.getImageData(0,0,W,H),out=ctx.createImageData(W,H),s=src.data,d=out.data;
+                const px=cx*W,py=cy*H,R=Math.max(2,Math.min(W,H)*.5*(radius/100)),k=(strength/100)*.78;
+                for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+                    const vx=x-px,vy=y-py,r=Math.hypot(vx,vy),di=(y*W+x)*4;let sx=x,sy=y;
+                    if(r<R&&r>0){const t=r/R,m=t*(1-k*(1-t)*(1-t)),rr=(m*R)/r;sx=Math.round(px+vx*rr);sy=Math.round(py+vy*rr);}
+                    sx=Math.max(0,Math.min(W-1,sx));sy=Math.max(0,Math.min(H-1,sy));
+                    const si=(sy*W+sx)*4;d[di]=s[si];d[di+1]=s[si+1];d[di+2]=s[si+2];d[di+3]=s[si+3];
+                }
+                ctx.putImageData(out,0,0);
+            }
+            function move(e){
+                const r=fisheyeRoot.getBoundingClientRect(),p=e.touches?e.touches[0]:e;
+                if(!p)return;cx=Math.max(0,Math.min(1,(p.clientX-r.left)/r.width));cy=Math.max(0,Math.min(1,(p.clientY-r.top)/r.height));drawFish();
+            }
+            if(behavior==="follow"){
+                fisheyeRoot.addEventListener("pointermove",move);
+                fisheyeRoot.addEventListener("touchmove",e=>{e.preventDefault();move(e);},{passive:false});
+            }
+            img.onload=drawFish;if(img.complete)drawFish();window.addEventListener("resize",drawFish);
+        }
+
 </script>
 
 </body>

@@ -1792,3 +1792,16 @@ body.authenticated .login-gate {
 
 /* v11: 상위 레이아웃은 절대 숨기지 않음.
    스토리 최종 출력비율은 4번의 스토리 비율만 사용. */
+
+
+/* =========================================================
+   어안렌즈 모드 - 기존 효과와 독립
+========================================================= */
+.fisheye-preview{
+    position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;
+    border-radius:18px;background:#090a0d;touch-action:none;user-select:none;
+}
+.fisheye-preview canvas{display:block;width:100%;height:100%}
+.fisheye-behavior-buttons{display:flex;gap:10px;flex-wrap:wrap}
+.fisheye-behavior.active{outline:2px solid var(--accent);outline-offset:1px}
+.fisheye-upload{max-width:520px}
