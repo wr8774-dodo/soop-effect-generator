@@ -2708,8 +2708,18 @@ exportButton.addEventListener("click", async () => {
         const clone = source.cloneNode(true);
 
         if (state.mode === "fisheye") {
+            /*
+             * 편집 화면에서는 원본을 유지하고,
+             * SOOP 배포 시에만 이미지 크기를 줄여 HTML 전송 용량을 낮춥니다.
+             */
+            const fisheyeDeploySrc =
+                await optimizeImageForDeploy(
+                    fisheyeState.src,
+                    1800
+                );
+
             clone.innerHTML = `
-                <img id="fisheyeDeploySource" src="${fisheyeState.src}" alt="" style="display:none">
+                <img id="fisheyeDeploySource" src="${fisheyeDeploySrc}" alt="" style="display:none">
                 <canvas id="fisheyeDeployCanvas"></canvas>
             `;
             clone.dataset.fisheyeStrength = String(fisheyeState.strength);
