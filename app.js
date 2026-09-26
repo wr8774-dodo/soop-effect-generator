@@ -2163,9 +2163,18 @@ const fisheyePreview=document.getElementById("fisheyePreview");
 const fisheyeCanvas=document.getElementById("fisheyeCanvas");
 const fisheyeEmpty=document.getElementById("fisheyeEmpty");
 const fisheyeBehaviorHelp=document.getElementById("fisheyeBehaviorHelp");
+const fisheyeX=document.getElementById("fisheyeX");
+const fisheyeY=document.getElementById("fisheyeY");
+const fisheyeXValue=document.getElementById("fisheyeXValue");
+const fisheyeYValue=document.getElementById("fisheyeYValue");
 const fisheyeBehaviorButtons=[...document.querySelectorAll(".fisheye-behavior")];
 
 const fisheyeState={src:"",strength:60,radius:75,cx:.5,cy:.5,behavior:"follow",zoom:1,photoX:0,photoY:0};
+function syncFisheyePositionUI(){
+    const x=Math.round(fisheyeState.cx*100), y=Math.round(fisheyeState.cy*100);
+    fisheyeX.value=String(x); fisheyeY.value=String(y);
+    fisheyeXValue.textContent=x+"%"; fisheyeYValue.textContent=y+"%";
+}
 const fisheyeImage=new Image();
 let fisheyeRenderToken=0;
 
@@ -2173,7 +2182,7 @@ fisheyePhoto.addEventListener("change",()=>{
     const file=fisheyePhoto.files && fisheyePhoto.files[0];
     readImageFile(file,src=>{
         fisheyeState.src=src;
-        fisheyeState.cx=.5; fisheyeState.cy=.5; fisheyeState.zoom=1; fisheyeState.photoX=0; fisheyeState.photoY=0; fisheyeZoom.value="100"; fisheyeZoomValue.textContent="100%";
+        fisheyeState.cx=.5; fisheyeState.cy=.5; fisheyeState.zoom=1; fisheyeState.photoX=0; fisheyeState.photoY=0; fisheyeZoom.value="100"; fisheyeZoomValue.textContent="100%"; syncFisheyePositionUI();
         fisheyeImage.onload=()=>{fisheyeEmpty.style.display="none";renderFisheye();};
         fisheyeImage.src=src;
     });
@@ -2186,7 +2195,9 @@ fisheyeRadius.addEventListener("input",()=>{
     fisheyeState.radius=Number(fisheyeRadius.value);
     fisheyeRadiusValue.textContent=fisheyeState.radius+"%"; renderFisheye();
 });
-fisheyeCenter.addEventListener("click",()=>{fisheyeState.cx=.5;fisheyeState.cy=.5;renderFisheye();});
+fisheyeCenter.addEventListener("click",()=>{fisheyeState.cx=.5;fisheyeState.cy=.5;syncFisheyePositionUI();renderFisheye();});
+fisheyeX.addEventListener("input",()=>{fisheyeState.cx=Number(fisheyeX.value)/100;syncFisheyePositionUI();renderFisheye();});
+fisheyeY.addEventListener("input",()=>{fisheyeState.cy=Number(fisheyeY.value)/100;syncFisheyePositionUI();renderFisheye();});
 fisheyeZoom.addEventListener("input",()=>{
     fisheyeState.zoom=Number(fisheyeZoom.value)/100;
     fisheyeZoomValue.textContent=fisheyeZoom.value+"%";
@@ -2211,6 +2222,7 @@ function setFisheyeCenterFromEvent(ev){
     if(!p||!r.width||!r.height)return;
     fisheyeState.cx=Math.max(0,Math.min(1,(p.clientX-r.left)/r.width));
     fisheyeState.cy=Math.max(0,Math.min(1,(p.clientY-r.top)/r.height));
+    syncFisheyePositionUI();
     renderFisheye();
 }
 let fisheyeDrag=null;

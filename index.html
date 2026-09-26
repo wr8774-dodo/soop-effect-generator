@@ -1238,13 +1238,23 @@
                         <button type="button" class="secondary-button fisheye-behavior" data-fisheye-behavior="fixed">위치 고정</button>
                     </div>
                     <p class="help" id="fisheyeBehaviorHelp">마우스 또는 손가락 위치를 렌즈 중심이 따라갑니다.</p>
+                    <div id="fisheyePositionControls">
+                        <label class="control">
+                            <span>렌즈 가로 위치 <b id="fisheyeXValue">50%</b></span>
+                            <input id="fisheyeX" type="range" min="0" max="100" step="1" value="50">
+                        </label>
+                        <label class="control">
+                            <span>렌즈 세로 위치 <b id="fisheyeYValue">50%</b></span>
+                            <input id="fisheyeY" type="range" min="0" max="100" step="1" value="50">
+                        </label>
+                    </div>
                 </div>
             </div>
         </section>
 
         <section class="panel">
             <h2>5. 미리보기</h2>
-            <p class="help">사진은 드래그해서 이동할 수 있습니다. 확대/축소도 가능하며, 원형 렌즈 틀 안에서 결과를 확인할 수 있습니다.</p>
+            <p class="help">사진은 드래그해서 이동할 수 있습니다. 위치 고정 모드에서는 가로/세로 슬라이더 또는 미리보기 더블클릭으로 렌즈 위치를 옮길 수 있습니다.</p>
             <div id="fisheyePreview" class="fisheye-preview">
                 <canvas id="fisheyeCanvas"></canvas>
                 <div id="fisheyeEmpty" class="empty-message">사진을 넣으면 어안렌즈 효과가 표시됩니다.</div>
