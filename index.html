@@ -1223,7 +1223,12 @@
                         <span>적용 범위 <b id="fisheyeRadiusValue">75%</b></span>
                         <input id="fisheyeRadius" type="range" min="20" max="100" value="75">
                     </label>
-                    <button type="button" id="fisheyeCenter" class="secondary-button">＋ 가운데로 이동</button>
+                    <label class="control">
+                        <span>사진 확대/축소 <b id="fisheyeZoomValue">100%</b></span>
+                        <input id="fisheyeZoom" type="range" min="100" max="300" step="1" value="100">
+                    </label>
+                    <button type="button" id="fisheyeResetPhoto" class="secondary-button">↺ 사진 위치 초기화</button>
+                    <button type="button" id="fisheyeCenter" class="secondary-button">＋ 렌즈 가운데로 이동</button>
                 </div>
 
                 <div class="effect-card">
@@ -1239,7 +1244,7 @@
 
         <section class="panel">
             <h2>5. 미리보기</h2>
-            <p class="help">위치 고정 모드에서는 사진을 누르거나 드래그해서 렌즈 중심을 정할 수 있습니다.</p>
+            <p class="help">사진은 드래그해서 이동할 수 있습니다. 확대/축소도 가능하며, 원형 렌즈 틀 안에서 결과를 확인할 수 있습니다.</p>
             <div id="fisheyePreview" class="fisheye-preview">
                 <canvas id="fisheyeCanvas"></canvas>
                 <div id="fisheyeEmpty" class="empty-message">사진을 넣으면 어안렌즈 효과가 표시됩니다.</div>

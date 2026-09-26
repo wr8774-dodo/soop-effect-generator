@@ -420,10 +420,6 @@ function applyRatio() {
     polaroidPreview.style.aspectRatio =
         ratio;
 
-    if (typeof fisheyePreview !== "undefined" && fisheyePreview) {
-        fisheyePreview.style.aspectRatio = ratio;
-    }
-
     requestAnimationFrame(() => {
         updateNormalCrop();
         updateNormalPreview();
@@ -459,7 +455,6 @@ modeButtons.forEach(button => {
             fisheyeMode.classList.toggle("hidden", state.mode !== "fisheye");
 
             if (state.mode === "fisheye") {
-                fisheyePreview.style.aspectRatio = getRatioCSS();
                 requestAnimationFrame(renderFisheye);
             }
 
@@ -2161,13 +2156,16 @@ const fisheyeRadius=document.getElementById("fisheyeRadius");
 const fisheyeStrengthValue=document.getElementById("fisheyeStrengthValue");
 const fisheyeRadiusValue=document.getElementById("fisheyeRadiusValue");
 const fisheyeCenter=document.getElementById("fisheyeCenter");
+const fisheyeZoom=document.getElementById("fisheyeZoom");
+const fisheyeZoomValue=document.getElementById("fisheyeZoomValue");
+const fisheyeResetPhoto=document.getElementById("fisheyeResetPhoto");
 const fisheyePreview=document.getElementById("fisheyePreview");
 const fisheyeCanvas=document.getElementById("fisheyeCanvas");
 const fisheyeEmpty=document.getElementById("fisheyeEmpty");
 const fisheyeBehaviorHelp=document.getElementById("fisheyeBehaviorHelp");
 const fisheyeBehaviorButtons=[...document.querySelectorAll(".fisheye-behavior")];
 
-const fisheyeState={src:"",strength:60,radius:75,cx:.5,cy:.5,behavior:"follow"};
+const fisheyeState={src:"",strength:60,radius:75,cx:.5,cy:.5,behavior:"follow",zoom:1,photoX:0,photoY:0};
 const fisheyeImage=new Image();
 let fisheyeRenderToken=0;
 
@@ -2175,7 +2173,7 @@ fisheyePhoto.addEventListener("change",()=>{
     const file=fisheyePhoto.files && fisheyePhoto.files[0];
     readImageFile(file,src=>{
         fisheyeState.src=src;
-        fisheyeState.cx=.5; fisheyeState.cy=.5;
+        fisheyeState.cx=.5; fisheyeState.cy=.5; fisheyeState.zoom=1; fisheyeState.photoX=0; fisheyeState.photoY=0; fisheyeZoom.value="100"; fisheyeZoomValue.textContent="100%";
         fisheyeImage.onload=()=>{fisheyeEmpty.style.display="none";renderFisheye();};
         fisheyeImage.src=src;
     });
@@ -2189,6 +2187,16 @@ fisheyeRadius.addEventListener("input",()=>{
     fisheyeRadiusValue.textContent=fisheyeState.radius+"%"; renderFisheye();
 });
 fisheyeCenter.addEventListener("click",()=>{fisheyeState.cx=.5;fisheyeState.cy=.5;renderFisheye();});
+fisheyeZoom.addEventListener("input",()=>{
+    fisheyeState.zoom=Number(fisheyeZoom.value)/100;
+    fisheyeZoomValue.textContent=fisheyeZoom.value+"%";
+    renderFisheye();
+});
+fisheyeResetPhoto.addEventListener("click",()=>{
+    fisheyeState.zoom=1;fisheyeState.photoX=0;fisheyeState.photoY=0;
+    fisheyeZoom.value="100";fisheyeZoomValue.textContent="100%";renderFisheye();
+});
+
 fisheyeBehaviorButtons.forEach(btn=>btn.addEventListener("click",()=>{
     fisheyeState.behavior=btn.dataset.fisheyeBehavior;
     fisheyeBehaviorButtons.forEach(x=>x.classList.toggle("active",x===btn));
@@ -2205,11 +2213,26 @@ function setFisheyeCenterFromEvent(ev){
     fisheyeState.cy=Math.max(0,Math.min(1,(p.clientY-r.top)/r.height));
     renderFisheye();
 }
-fisheyePreview.addEventListener("pointermove",e=>{
-    if(fisheyeState.behavior==="follow" || (fisheyeState.behavior==="fixed" && e.buttons)) setFisheyeCenterFromEvent(e);
-});
+let fisheyeDrag=null;
 fisheyePreview.addEventListener("pointerdown",e=>{
-    if(fisheyeState.behavior==="fixed"){fisheyePreview.setPointerCapture?.(e.pointerId);setFisheyeCenterFromEvent(e);}
+    fisheyePreview.setPointerCapture?.(e.pointerId);
+    fisheyeDrag={x:e.clientX,y:e.clientY,px:fisheyeState.photoX,py:fisheyeState.photoY};
+    if(fisheyeState.behavior==="follow") setFisheyeCenterFromEvent(e);
+});
+fisheyePreview.addEventListener("pointermove",e=>{
+    if(fisheyeDrag && e.buttons){
+        const r=fisheyePreview.getBoundingClientRect();
+        fisheyeState.photoX=fisheyeDrag.px+(e.clientX-fisheyeDrag.x)/Math.max(1,r.width);
+        fisheyeState.photoY=fisheyeDrag.py+(e.clientY-fisheyeDrag.y)/Math.max(1,r.height);
+        if(fisheyeState.behavior==="follow") setFisheyeCenterFromEvent(e); else renderFisheye();
+    }else if(fisheyeState.behavior==="follow"){
+        setFisheyeCenterFromEvent(e);
+    }
+});
+fisheyePreview.addEventListener("pointerup",()=>{fisheyeDrag=null;});
+fisheyePreview.addEventListener("pointercancel",()=>{fisheyeDrag=null;});
+fisheyePreview.addEventListener("dblclick",e=>{
+    if(fisheyeState.behavior==="fixed") setFisheyeCenterFromEvent(e);
 });
 
 function renderFisheye(){
@@ -2221,7 +2244,8 @@ function renderFisheye(){
     if(fisheyeCanvas.width!==W||fisheyeCanvas.height!==H){fisheyeCanvas.width=W;fisheyeCanvas.height=H;}
     const ctx=fisheyeCanvas.getContext("2d",{willReadFrequently:true});
     const iw=fisheyeImage.naturalWidth, ih=fisheyeImage.naturalHeight;
-    const scale=Math.max(W/iw,H/ih), dw=iw*scale, dh=ih*scale, dx=(W-dw)/2,dy=(H-dh)/2;
+    const scale=Math.max(W/iw,H/ih)*fisheyeState.zoom, dw=iw*scale, dh=ih*scale;
+    const dx=(W-dw)/2+fisheyeState.photoX*W,dy=(H-dh)/2+fisheyeState.photoY*H;
     ctx.clearRect(0,0,W,H); ctx.drawImage(fisheyeImage,dx,dy,dw,dh);
     if(fisheyeState.strength<=0)return;
     const src=ctx.getImageData(0,0,W,H), out=ctx.createImageData(W,H);
@@ -2681,6 +2705,9 @@ exportButton.addEventListener("click", async () => {
             clone.dataset.fisheyeCx = String(fisheyeState.cx);
             clone.dataset.fisheyeCy = String(fisheyeState.cy);
             clone.dataset.fisheyeBehavior = fisheyeState.behavior;
+            clone.dataset.fisheyeZoom = String(fisheyeState.zoom);
+            clone.dataset.fisheyePhotoX = String(fisheyeState.photoX);
+            clone.dataset.fisheyePhotoY = String(fisheyeState.photoY);
         }
 
         /*
@@ -3966,14 +3993,18 @@ ${clone.outerHTML}
             let cx=Number(fisheyeRoot.dataset.fisheyeCx||.5),cy=Number(fisheyeRoot.dataset.fisheyeCy||.5);
             const strength=Number(fisheyeRoot.dataset.fisheyeStrength||60);
             const radius=Number(fisheyeRoot.dataset.fisheyeRadius||75);
+            const photoZoom=Number(fisheyeRoot.dataset.fisheyeZoom||1);
+            const photoX=Number(fisheyeRoot.dataset.fisheyePhotoX||0);
+            const photoY=Number(fisheyeRoot.dataset.fisheyePhotoY||0);
             const behavior=fisheyeRoot.dataset.fisheyeBehavior||"follow";
             function drawFish(){
                 if(!img.naturalWidth||!fisheyeRoot.clientWidth||!fisheyeRoot.clientHeight)return;
                 const W=Math.max(1,Math.round(fisheyeRoot.clientWidth));
                 const H=Math.max(1,Math.round(fisheyeRoot.clientHeight));
                 c.width=W;c.height=H;c.style.width="100%";c.style.height="100%";
-                const scale=Math.max(W/img.naturalWidth,H/img.naturalHeight);
-                const dw=img.naturalWidth*scale,dh=img.naturalHeight*scale,dx=(W-dw)/2,dy=(H-dh)/2;
+                const scale=Math.max(W/img.naturalWidth,H/img.naturalHeight)*photoZoom;
+                const dw=img.naturalWidth*scale,dh=img.naturalHeight*scale;
+                const dx=(W-dw)/2+photoX*W,dy=(H-dh)/2+photoY*H;
                 ctx.clearRect(0,0,W,H);ctx.drawImage(img,dx,dy,dw,dh);
                 if(strength<=0)return;
                 const src=ctx.getImageData(0,0,W,H),out=ctx.createImageData(W,H),s=src.data,d=out.data;
