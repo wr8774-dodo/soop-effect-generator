@@ -2251,7 +2251,7 @@ function renderFisheye(){
     const src=ctx.getImageData(0,0,W,H), out=ctx.createImageData(W,H);
     const s=src.data,d=out.data,cx=fisheyeState.cx*W,cy=fisheyeState.cy*H;
     const R=Math.max(2,Math.min(W,H)*.5*(fisheyeState.radius/100));
-    const k=(fisheyeState.strength/100)*.78;
+    const k=Math.min(2.34,(fisheyeState.strength/100)*.78);
     for(let y=0;y<H;y++){
         for(let x=0;x<W;x++){
             const vx=x-cx,vy=y-cy,r=Math.hypot(vx,vy),di=(y*W+x)*4;
@@ -4008,7 +4008,7 @@ ${clone.outerHTML}
                 ctx.clearRect(0,0,W,H);ctx.drawImage(img,dx,dy,dw,dh);
                 if(strength<=0)return;
                 const src=ctx.getImageData(0,0,W,H),out=ctx.createImageData(W,H),s=src.data,d=out.data;
-                const px=cx*W,py=cy*H,R=Math.max(2,Math.min(W,H)*.5*(radius/100)),k=(strength/100)*.78;
+                const px=cx*W,py=cy*H,R=Math.max(2,Math.min(W,H)*.5*(radius/100)),k=Math.min(2.34,(strength/100)*.78);
                 for(let y=0;y<H;y++)for(let x=0;x<W;x++){
                     const vx=x-px,vy=y-py,r=Math.hypot(vx,vy),di=(y*W+x)*4;let sx=x,sy=y;
                     if(r<R&&r>0){const t=r/R,m=t*(1-k*(1-t)*(1-t)),rr=(m*R)/r;sx=Math.round(px+vx*rr);sy=Math.round(py+vy*rr);}
