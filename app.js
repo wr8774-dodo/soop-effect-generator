@@ -2461,17 +2461,30 @@ function showStoryIndex(i,d="next"){
 }
 
 storyAddPhoto.addEventListener("click",()=>createStorySlot());
-storyPrev.addEventListener("click",e=>{e.stopPropagation();if(storyState.index>0)showStoryIndex(storyState.index-1,"prev");else restartStoryTimer();});
-storyNext.addEventListener("click",e=>{e.stopPropagation();const p=getStoryPhotos();if(storyState.index<p.length-1)showStoryIndex(storyState.index+1,"next");else restartStoryTimer();});
+storyPrev.addEventListener("click",e=>{e.stopPropagation();if(storyState.dragMoved)return;if(storyState.index>0)showStoryIndex(storyState.index-1,"prev");else restartStoryTimer();});
+storyNext.addEventListener("click",e=>{e.stopPropagation();if(storyState.dragMoved)return;const p=getStoryPhotos();if(storyState.index<p.length-1)showStoryIndex(storyState.index+1,"next");else restartStoryTimer();});
 storyReplay.addEventListener("click",()=>showStoryIndex(0));
 storyDuration.addEventListener("input",restartStoryTimer);storyAutoPlay.addEventListener("change",restartStoryTimer);
 storyTransition.addEventListener("change",()=>showStoryIndex(storyState.index));
 storyZoom.addEventListener("input",()=>{const p=getStoryPhotos()[storyState.index];if(p){p.zoom=Number(storyZoom.value);applyStoryTransform();}});
 storyReset.addEventListener("click",()=>{const p=getStoryPhotos()[storyState.index];if(p){p.x=0;p.y=0;p.zoom=1;applyStoryTransform();}});
 storyPreview.addEventListener("keydown",e=>{if(e.key==="ArrowLeft")storyPrev.click();if(e.key==="ArrowRight")storyNext.click();});
-storyPreview.addEventListener("pointerdown",e=>{if(e.target.closest(".story-nav"))return;const p=getStoryPhotos()[storyState.index];if(!p)return;storyState.drag=true;storyState.startX=e.clientX;storyState.startY=e.clientY;storyState.baseX=p.x||0;storyState.baseY=p.y||0;storyPreview.setPointerCapture(e.pointerId);});
-storyPreview.addEventListener("pointermove",e=>{if(!storyState.drag)return;const p=getStoryPhotos()[storyState.index];if(!p)return;p.x=storyState.baseX+e.clientX-storyState.startX;p.y=storyState.baseY+e.clientY-storyState.startY;applyStoryTransform();});
-storyPreview.addEventListener("pointerup",()=>storyState.drag=false);storyPreview.addEventListener("pointercancel",()=>storyState.drag=false);
+storyState.dragMoved=false;
+storyPreview.addEventListener("pointerdown",e=>{
+    const p=getStoryPhotos()[storyState.index];if(!p)return;
+    storyState.drag=true;storyState.dragMoved=false;
+    storyState.startX=e.clientX;storyState.startY=e.clientY;
+    storyState.baseX=p.x||0;storyState.baseY=p.y||0;
+    storyPreview.setPointerCapture?.(e.pointerId);
+});
+storyPreview.addEventListener("pointermove",e=>{
+    if(!storyState.drag)return;const p=getStoryPhotos()[storyState.index];if(!p)return;
+    const dx=e.clientX-storyState.startX,dy=e.clientY-storyState.startY;
+    if(Math.hypot(dx,dy)>4)storyState.dragMoved=true;
+    p.x=storyState.baseX+dx;p.y=storyState.baseY+dy;applyStoryTransform();
+});
+storyPreview.addEventListener("pointerup",()=>{storyState.drag=false;setTimeout(()=>storyState.dragMoved=false,0);});
+storyPreview.addEventListener("pointercancel",()=>{storyState.drag=false;storyState.dragMoved=false;});
 
 
 let storyRatio="9:16";storyPreview.dataset.storyRatio=storyRatio;
@@ -2864,8 +2877,7 @@ body {
 ===================================================== */
 
 #soop-effect-root > .normal-preview,
-#soop-effect-root > .polaroid-preview,
-#soop-effect-root > .story-preview {
+#soop-effect-root > .polaroid-preview {
 
     position: absolute !important;
 
@@ -2888,6 +2900,36 @@ body {
     overflow: hidden !important;
 }
 
+
+
+/* =====================================================
+   스토리 배포 전용
+   PC에서는 인스타 스토리처럼 가운데 적당한 크기로 표시
+===================================================== */
+#soop-effect-root > .story-preview {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    inset: auto !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+}
+#soop-effect-root > .story-preview[data-story-ratio="9:16"] {
+    width: min(430px, 100vw) !important;
+    height: min(764px, 100vh) !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    aspect-ratio: 9 / 16 !important;
+}
+#soop-effect-root > .story-preview[data-story-ratio="16:9"] {
+    width: min(960px, 100vw) !important;
+    height: auto !important;
+    max-height: 100vh !important;
+    aspect-ratio: 16 / 9 !important;
+}
 
 /* =====================================================
    일반 사진

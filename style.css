@@ -1819,3 +1819,7 @@ body.authenticated .login-gate {
 }
 .fisheye-preview:active{cursor:grabbing}
 .fisheye-preview canvas{border-radius:50%}
+
+/* story fix v6: 사진 이동/크기 조절 복구 */
+.story-preview{touch-action:none !important;cursor:grab}
+.story-preview:active{cursor:grabbing}
