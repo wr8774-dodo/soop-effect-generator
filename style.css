@@ -1846,3 +1846,39 @@ body.authenticated .login-gate {
     margin:0 auto !important;
 }
 .story-preview{touch-action:none !important}
+
+/* story fix v8: 이미지 프레임 내부 패닝 */
+.story-preview-image{
+    left:50% !important;
+    top:50% !important;
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover !important;
+    object-position:var(--story-pos-x,50%) var(--story-pos-y,50%) !important;
+    transform:translate(-50%,-50%) scale(var(--story-zoom,1)) !important;
+    transform-origin:center center !important;
+}
+
+/* story fix v9 — 정상 게시물 실측 447 × 794.66 기준 */
+.story-preview-holder{
+    width:100% !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+}
+.story-preview[data-story-ratio="9:16"]{
+    box-sizing:border-box !important;
+    width:447px !important;
+    height:794.6667px !important;
+    max-width:100% !important;
+    max-height:none !important;
+    aspect-ratio:9/16 !important;
+    margin:0 auto !important;
+}
+@media (max-width:480px){
+    .story-preview[data-story-ratio="9:16"]{
+        width:min(447px,100%) !important;
+        height:auto !important;
+        aspect-ratio:9/16 !important;
+    }
+}

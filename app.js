@@ -2342,6 +2342,8 @@ storyAddPhoto=document.getElementById("storyAddPhoto"),
 storyPhotoList=document.getElementById("storyPhotoList"),
 storyDuration=document.getElementById("storyDuration"),storyTransition=document.getElementById("storyTransition"),
 storyAutoPlay=document.getElementById("storyAutoPlay"),storyZoom=document.getElementById("storyZoom"),
+storyPosX=document.getElementById("storyPosX"),storyPosY=document.getElementById("storyPosY"),
+storyPosXValue=document.getElementById("storyPosXValue"),storyPosYValue=document.getElementById("storyPosYValue"),
 storyReset=document.getElementById("storyReset"),storyPreview=document.getElementById("storyPreview"),
 storyPreviewImage=document.getElementById("storyPreviewImage"),storyProgress=document.getElementById("storyProgress"),
 storyPrev=document.getElementById("storyPrev"),storyNext=document.getElementById("storyNext"),
@@ -2369,12 +2371,12 @@ async function compressStoryImage(file,maxLongSide=2200,quality=.86){
 }
 async function setStorySlotFile(slot,file){
  if(!file||!file.type.startsWith("image/"))return;
- try{slot.src=await compressStoryImage(file,2200,.86);slot.name=file.name;slot.x=0;slot.y=0;slot.xPct=0;slot.yPct=0;slot.zoom=1;const photos=getStoryPhotos();storyState.index=Math.max(0,photos.findIndex(p=>p===slot));renderStorySlots();showStoryIndex(storyState.index,"next");}
+ try{slot.src=await compressStoryImage(file,2200,.86);slot.name=file.name;slot.x=0;slot.y=0;slot.xPct=0;slot.yPct=0;slot.posX=50;slot.posY=50;slot.zoom=1;const photos=getStoryPhotos();storyState.index=Math.max(0,photos.findIndex(p=>p===slot));renderStorySlots();showStoryIndex(storyState.index,"next");}
  catch(e){console.error(e);alert("사진을 불러오지 못했습니다.");}
 }
 function createStorySlot(photo=null){
     const id=Date.now().toString(36)+Math.random().toString(36).slice(2);
-    storyState.slots.push(photo||{id,src:"",name:"",x:0,y:0,xPct:0,yPct:0,zoom:1});
+    storyState.slots.push(photo||{id,src:"",name:"",x:0,y:0,xPct:0,yPct:0,posX:50,posY:50,zoom:1});
     renderStorySlots();
 }
 
@@ -2435,11 +2437,13 @@ function renderStoryProgress(){
 
 function applyStoryTransform(){
     const p=getStoryPhotos()[storyState.index];if(!p)return;
-    const z=Number(p.zoom||1);
-    const xp=Number(p.xPct||0), yp=Number(p.yPct||0);
+    const z=Number(p.zoom||1), px=Number(p.posX ?? 50), py=Number(p.posY ?? 50);
     storyPreviewImage.style.setProperty("--story-zoom",z);
-    storyPreviewImage.style.transform=`translate(calc(-50% + ${xp}%),calc(-50% + ${yp}%)) scale(${z})`;
-    storyZoom.value=z;
+    storyPreviewImage.style.setProperty("--story-pos-x",px+"%");
+    storyPreviewImage.style.setProperty("--story-pos-y",py+"%");
+    storyPreviewImage.style.transform=`translate(-50%,-50%) scale(${z})`;
+    storyZoom.value=z;storyPosX.value=px;storyPosY.value=py;
+    storyPosXValue.textContent=Math.round(px)+"%";storyPosYValue.textContent=Math.round(py)+"%";
 }
 
 function restartStoryTimer(){
@@ -2470,14 +2474,16 @@ storyReplay.addEventListener("click",()=>showStoryIndex(0));
 storyDuration.addEventListener("input",restartStoryTimer);storyAutoPlay.addEventListener("change",restartStoryTimer);
 storyTransition.addEventListener("change",()=>showStoryIndex(storyState.index));
 storyZoom.addEventListener("input",()=>{const p=getStoryPhotos()[storyState.index];if(p){p.zoom=Number(storyZoom.value);applyStoryTransform();}});
-storyReset.addEventListener("click",()=>{const p=getStoryPhotos()[storyState.index];if(p){p.x=0;p.y=0;p.xPct=0;p.yPct=0;p.zoom=1;applyStoryTransform();}});
+storyPosX.addEventListener("input",()=>{const p=getStoryPhotos()[storyState.index];if(p){p.posX=Number(storyPosX.value);applyStoryTransform();}});
+storyPosY.addEventListener("input",()=>{const p=getStoryPhotos()[storyState.index];if(p){p.posY=Number(storyPosY.value);applyStoryTransform();}});
+storyReset.addEventListener("click",()=>{const p=getStoryPhotos()[storyState.index];if(p){p.x=0;p.y=0;p.xPct=0;p.yPct=0;p.posX=50;p.posY=50;p.zoom=1;applyStoryTransform();}});
 storyPreview.addEventListener("keydown",e=>{if(e.key==="ArrowLeft")storyPrev.click();if(e.key==="ArrowRight")storyNext.click();});
 storyState.dragMoved=false;
 storyPreview.addEventListener("pointerdown",e=>{
     const p=getStoryPhotos()[storyState.index];if(!p)return;
     storyState.drag=true;storyState.dragMoved=false;
     storyState.startX=e.clientX;storyState.startY=e.clientY;
-    storyState.baseX=Number(p.xPct||0);storyState.baseY=Number(p.yPct||0);
+    storyState.baseX=Number(p.posX ?? 50);storyState.baseY=Number(p.posY ?? 50);
     storyPreview.setPointerCapture?.(e.pointerId);
 });
 storyPreview.addEventListener("pointermove",e=>{
@@ -2485,8 +2491,8 @@ storyPreview.addEventListener("pointermove",e=>{
     const dx=e.clientX-storyState.startX,dy=e.clientY-storyState.startY;
     if(Math.hypot(dx,dy)>4)storyState.dragMoved=true;
     const r=storyPreview.getBoundingClientRect();
-    p.xPct=storyState.baseX+(dx/Math.max(1,r.width))*100;
-    p.yPct=storyState.baseY+(dy/Math.max(1,r.height))*100;
+    p.posX=Math.max(0,Math.min(100,storyState.baseX-(dx/Math.max(1,r.width))*100));
+    p.posY=Math.max(0,Math.min(100,storyState.baseY-(dy/Math.max(1,r.height))*100));
     applyStoryTransform();
 });
 storyPreview.addEventListener("pointerup",()=>{storyState.drag=false;setTimeout(()=>storyState.dragMoved=false,0);});
@@ -2909,30 +2915,31 @@ body {
 
 
 /* =====================================================
-   스토리 배포 전용
+   스토리 배포 전용 — 447 × 794.66 iframe 전체 사용
 ===================================================== */
 #soop-effect-root > .story-preview {
     position:absolute !important;
-    left:50% !important;
-    top:50% !important;
-    inset:auto !important;
-    transform:translate(-50%,-50%) !important;
+    inset:0 !important;
+    left:0 !important;
+    top:0 !important;
+    transform:none !important;
+    width:100% !important;
+    height:100% !important;
+    max-width:none !important;
+    max-height:none !important;
     margin:0 !important;
     padding:0 !important;
+    box-sizing:border-box !important;
     overflow:hidden !important;
-    border-radius:18px !important;
+    border-radius:0 !important;
 }
-#soop-effect-root > .story-preview[data-story-ratio="9:16"] {
-    height:min(740px, 96vh) !important;
-    width:auto !important;
-    max-width:96vw !important;
-    aspect-ratio:9 / 16 !important;
-}
+#soop-effect-root > .story-preview[data-story-ratio="9:16"],
 #soop-effect-root > .story-preview[data-story-ratio="16:9"] {
-    width:min(960px, 96vw) !important;
-    height:auto !important;
-    max-height:96vh !important;
-    aspect-ratio:16 / 9 !important;
+    width:100% !important;
+    height:100% !important;
+    max-width:none !important;
+    max-height:none !important;
+    aspect-ratio:auto !important;
 }
 
 /* =====================================================
@@ -3053,14 +3060,14 @@ ${clone.outerHTML}
         const prev=storyPreview.querySelector(".story-nav-prev");
         const next=storyPreview.querySelector(".story-nav-next");
         const empty=storyPreview.querySelector(".story-empty");
-        const photos=${JSON.stringify(getStoryPhotos().map(p=>({src:p.src,xPct:p.xPct||0,yPct:p.yPct||0,zoom:p.zoom||1})))};
+        const photos=${JSON.stringify(getStoryPhotos().map(p=>({src:p.src,posX:p.posX ?? 50,posY:p.posY ?? 50,zoom:p.zoom||1})))};
         const duration=${Number(storyDuration.value)};
         const transition=${JSON.stringify(storyTransition.value)};
         const autoPlay=${storyAutoPlay.checked ? "true" : "false"};
         let index=0,timer=null;
         function bars(){progress.innerHTML="";photos.forEach((_,i)=>{const b=document.createElement("div");b.className="story-progress-item";if(i<index)b.classList.add("done");if(i===index)b.classList.add("current");const f=document.createElement("div");f.className="story-progress-fill";f.style.setProperty("--story-duration",duration+"s");b.appendChild(f);progress.appendChild(b);if(i===index&&autoPlay&&photos.length>1)requestAnimationFrame(()=>f.classList.add("playing"));});}
         function restart(){if(timer)clearTimeout(timer);bars();if(!autoPlay||photos.length<2)return;timer=setTimeout(()=>{if(index<photos.length-1)show(index+1,"next");},duration*1000);}
-        function show(i,d){if(!photos.length)return;index=Math.max(0,Math.min(photos.length-1,i));const p=photos[index];image.src=p.src;if(empty)empty.style.display="none";image.style.setProperty("--story-zoom",p.zoom||1);image.style.transform="translate(calc(-50% + "+(p.xPct||0)+"%),calc(-50% + "+(p.yPct||0)+"%)) scale("+(p.zoom||1)+")";image.classList.remove("story-fade","story-slide-next","story-slide-prev","story-zoom");void image.offsetWidth;if(transition==="slide")image.classList.add(d==="prev"?"story-slide-prev":"story-slide-next");else if(transition==="zoom")image.classList.add("story-zoom");else image.classList.add("story-fade");counter.textContent=(index+1)+" / "+photos.length;restart();}
+        function show(i,d){if(!photos.length)return;index=Math.max(0,Math.min(photos.length-1,i));const p=photos[index];image.src=p.src;if(empty)empty.style.display="none";image.style.setProperty("--story-zoom",p.zoom||1);image.style.setProperty("--story-pos-x",(p.posX ?? 50)+"%");image.style.setProperty("--story-pos-y",(p.posY ?? 50)+"%");image.style.transform="translate(-50%,-50%) scale("+(p.zoom||1)+")";image.classList.remove("story-fade","story-slide-next","story-slide-prev","story-zoom");void image.offsetWidth;if(transition==="slide")image.classList.add(d==="prev"?"story-slide-prev":"story-slide-next");else if(transition==="zoom")image.classList.add("story-zoom");else image.classList.add("story-fade");counter.textContent=(index+1)+" / "+photos.length;restart();}
         prev.addEventListener("click",e=>{e.stopPropagation();if(index>0)show(index-1,"prev");else restart();});
         next.addEventListener("click",e=>{e.stopPropagation();if(index<photos.length-1)show(index+1,"next");else restart();});
         show(0,"next");
@@ -4193,9 +4200,19 @@ ${clone.outerHTML}
 
 function createStoryIframeCode(publicUrl) {
     const isPortrait = storyRatio === "9:16";
-    const aspect = isPortrait ? "9/16" : "16/9";
-    const maxWidth = isPortrait ? "430px" : "1000px";
-    return `<div style="width:100%; max-width:${maxWidth}; margin:0 auto; position:relative; aspect-ratio:${aspect};" data-soop-custom-block="true">
+    if (isPortrait) {
+        return `<div style="width:447px; max-width:100%; margin:0 auto; position:relative; aspect-ratio:9/16;" data-soop-custom-block="true">
+  <iframe
+    src="${publicUrl}"
+    width="447"
+    height="795"
+    style="display:block; width:100%; aspect-ratio:9/16; height:auto; margin:0; padding:0; border:0;"
+    scrolling="no"
+    frameborder="0">
+  </iframe>
+</div>`;
+    }
+    return `<div style="width:100%; max-width:1000px; margin:0 auto; position:relative; aspect-ratio:16/9;" data-soop-custom-block="true">
   <iframe
     src="${publicUrl}"
     style="display:block; width:100%; height:100%; margin:0; padding:0; border:0;"
