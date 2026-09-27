@@ -448,6 +448,7 @@ modeButtons.forEach(button => {
 
             state.mode =
                 button.dataset.mode;
+            document.body.classList.toggle("story-mode", state.mode === "story");
 
             normalMode.classList.toggle("hidden", state.mode !== "normal");
             polaroidMode.classList.toggle("hidden", state.mode !== "polaroid");
@@ -2468,8 +2469,8 @@ function showStoryIndex(i,d="next"){
 }
 
 storyAddPhoto.addEventListener("click",()=>createStorySlot());
-storyPrev.addEventListener("click",e=>{e.stopPropagation();if(storyState.dragMoved)return;if(storyState.index>0)showStoryIndex(storyState.index-1,"prev");else restartStoryTimer();});
-storyNext.addEventListener("click",e=>{e.stopPropagation();if(storyState.dragMoved)return;const p=getStoryPhotos();if(storyState.index<p.length-1)showStoryIndex(storyState.index+1,"next");else restartStoryTimer();});
+storyPrev.addEventListener("click",e=>{e.preventDefault();e.stopImmediatePropagation();if(storyState.index>0)showStoryIndex(storyState.index-1,"prev");else restartStoryTimer();});
+storyNext.addEventListener("click",e=>{e.preventDefault();e.stopImmediatePropagation();const p=getStoryPhotos();if(storyState.index<p.length-1)showStoryIndex(storyState.index+1,"next");else restartStoryTimer();});
 storyReplay.addEventListener("click",()=>showStoryIndex(0));
 storyDuration.addEventListener("input",restartStoryTimer);storyAutoPlay.addEventListener("change",restartStoryTimer);
 storyTransition.addEventListener("change",()=>showStoryIndex(storyState.index));
@@ -2480,6 +2481,8 @@ storyReset.addEventListener("click",()=>{const p=getStoryPhotos()[storyState.ind
 storyPreview.addEventListener("keydown",e=>{if(e.key==="ArrowLeft")storyPrev.click();if(e.key==="ArrowRight")storyNext.click();});
 storyState.dragMoved=false;
 storyPreview.addEventListener("pointerdown",e=>{
+    /* 좌/우 이동 영역은 사진 드래그와 분리 */
+    if(e.target.closest(".story-nav")) return;
     const p=getStoryPhotos()[storyState.index];if(!p)return;
     storyState.drag=true;storyState.dragMoved=false;
     storyState.startX=e.clientX;storyState.startY=e.clientY;
@@ -2497,9 +2500,22 @@ storyPreview.addEventListener("pointermove",e=>{
 });
 storyPreview.addEventListener("pointerup",()=>{storyState.drag=false;setTimeout(()=>storyState.dragMoved=false,0);});
 storyPreview.addEventListener("pointercancel",()=>{storyState.drag=false;storyState.dragMoved=false;});
+storyPreview.addEventListener("click",e=>{
+    if(storyState.dragMoved)return;
+    const r=storyPreview.getBoundingClientRect();
+    const x=e.clientX-r.left;
+    const photos=getStoryPhotos();
+    if(x < r.width*0.35){
+        if(storyState.index>0){storyState.index--;renderStory();restartStoryTimer();}
+        return;
+    }
+    if(x > r.width*0.65){
+        if(storyState.index<photos.length-1){storyState.index++;renderStory();restartStoryTimer();}
+    }
+});
 
 
-let storyRatio="9:16";storyPreview.dataset.storyRatio=storyRatio;
+let storyRatio = "9:16";storyPreview.dataset.storyRatio=storyRatio;
 function applyStoryRatio(){
     storyPreview.dataset.storyRatio=storyRatio;
     storyPreview.style.aspectRatio=storyRatio==="9:16"?"9 / 16":"16 / 9";
@@ -2700,6 +2716,7 @@ function createProjectSettings() {
 ========================================================= */
 
 exportButton.addEventListener("click", async () => {
+    if (state.mode === "story") storyRatio = "9:16";
     const validation = validateProject();
 
     if (!validation.ok) {

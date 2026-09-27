@@ -1882,3 +1882,6 @@ body.authenticated .login-gate {
         aspect-ratio:9/16 !important;
     }
 }
+
+/* story final v12 */
+body.story-mode #outputRatioPanel{display:none !important;}
