@@ -1823,3 +1823,26 @@ body.authenticated .login-gate {
 /* story fix v6: 사진 이동/크기 조절 복구 */
 .story-preview{touch-action:none !important;cursor:grab}
 .story-preview:active{cursor:grabbing}
+
+/* story fix v7 */
+.story-preview-holder{
+    width:100% !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+}
+.story-preview[data-story-ratio="9:16"]{
+    width:min(380px, 92vw) !important;
+    max-width:380px !important;
+    height:auto !important;
+    aspect-ratio:9 / 16 !important;
+    margin:0 auto !important;
+}
+.story-preview[data-story-ratio="16:9"]{
+    width:min(760px, 100%) !important;
+    max-width:760px !important;
+    height:auto !important;
+    aspect-ratio:16 / 9 !important;
+    margin:0 auto !important;
+}
+.story-preview{touch-action:none !important}
