@@ -9,7 +9,7 @@ a{color:#c6b9ff}h1{font-size:27px}h2{font-size:19px;margin:0 0 15px}
 section{background:#1b1d26;border:1px solid #383a46;border-radius:18px;padding:20px;margin:16px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:15px}
 label{display:flex;flex-direction:column;gap:8px;font-weight:600;font-size:14px}
-input,button{font:inherit}input[type=file],input[type=number],input[type=range]{width:100%}
+input,button{font:inherit}input[type=file],input[type=number],input[type=range],select{width:100%} input[type=color]{width:100%;height:40px;background:#101116;border:1px solid #555665;border-radius:9px} select{background:#101116;color:white;border:1px solid #555665;border-radius:9px;padding:10px}.effect-toggle{justify-content:center}.effect-toggle input{width:18px;height:18px;vertical-align:middle}
 input[type=number],input[type=file]{background:#101116;color:white;border:1px solid #555665;border-radius:9px;padding:10px}
 button{border:0;border-radius:10px;background:#7555d8;color:white;padding:12px 18px;cursor:pointer;font-weight:700}
 button:disabled{opacity:.4;cursor:not-allowed}
@@ -29,21 +29,38 @@ small{color:#bfc0cd}
 <label>싸인 크기 <span id="signScaleLabel">25%</span><input id="signScale" type="range" min="5" max="100" value="25"></label>
 <label>싸인 투명도 <span id="signOpacityLabel">100%</span><input id="signOpacity" type="range" min="0" max="100" value="100"></label>
 </div><p class="note">미리보기에서 싸인을 드래그해 위치를 옮길 수 있습니다. 영상 재생 위치는 아래 슬라이더로 변경하세요.</p></section>
-<section><h2>2. 구간·화질</h2><div class="grid">
+<section><h2>2. 싸인 레이어 스타일</h2>
+<p class="note">포토피아처럼 외부 광선과 그림자를 각각 켜고 색상·불투명도·크기 등을 조절할 수 있습니다. 미리보기와 GIF에 동일하게 적용됩니다.</p>
+<div class="grid">
+<label class="effect-toggle"><span><input id="glowEnabled" type="checkbox"> 외부 광선</span></label>
+<label>광선 색상<input id="glowColor" type="color" value="#ffffff"></label>
+<label>광선 불투명도 <span id="glowOpacityValue">70%</span><input id="glowOpacity" type="range" min="0" max="100" value="70"></label>
+<label>광선 크기 <span id="glowSizeValue">18px</span><input id="glowSize" type="range" min="0" max="80" value="18"></label>
+<label>광선 강도 <span id="glowStrengthValue">50%</span><input id="glowStrength" type="range" min="0" max="100" value="50"></label>
+<label>광선 혼합 모드<select id="glowBlend"><option value="normal">일반</option><option value="screen">스크린</option></select></label>
+<label class="effect-toggle"><span><input id="shadowEnabled" type="checkbox"> 그림자</span></label>
+<label>그림자 색상<input id="shadowColor" type="color" value="#000000"></label>
+<label>그림자 불투명도 <span id="shadowOpacityValue">70%</span><input id="shadowOpacity" type="range" min="0" max="100" value="70"></label>
+<label>그림자 흐림 <span id="shadowBlurValue">8px</span><input id="shadowBlur" type="range" min="0" max="80" value="8"></label>
+<label>그림자 X 위치 <span id="shadowXValue">4px</span><input id="shadowX" type="range" min="-60" max="60" value="4"></label>
+<label>그림자 Y 위치 <span id="shadowYValue">4px</span><input id="shadowY" type="range" min="-60" max="60" value="4"></label>
+</div><div class="actions" style="margin-top:14px"><button type="button" class="secondary" id="resetEffects">레이어 스타일 초기화</button></div>
+</section>
+<section><h2>3. 구간·화질</h2><div class="grid">
 <label>시작 시간 (초)<input id="start" type="number" min="0" step="0.1" value="0"></label>
 <label>종료 시간 (초)<input id="end" type="number" min="0" step="0.1" value="5"></label>
 <label>우선 해상도 (가로 px)<input id="width" type="number" min="160" max="1920" step="1" value="720"></label>
 <label>우선 프레임 (FPS)<input id="fps" type="number" min="5" max="30" value="15"></label>
 </div><p class="note">20MB 제한에 맞추기 위해 19MB를 목표로 자동 재변환합니다. 길이가 길면 FPS·해상도가 낮아질 수 있습니다.</p></section>
-<section><h2>3. 싸인 위치 미리보기</h2>
+<section><h2>4. 싸인 위치 미리보기</h2>
 <div class="stage" id="stage"><canvas id="preview" width="720" height="405"></canvas></div>
 <div style="margin-top:14px"><input id="seek" type="range" min="0" max="100" value="0"></div>
 <div class="actions"><button id="resetSign" class="secondary">싸인 위치 초기화</button><small id="videoInfo">영상을 선택해주세요.</small></div>
 </section>
-<section><h2>4. GIF 만들기</h2>
+<section><h2>5. GIF 만들기</h2>
 <div class="actions"><button id="convert" disabled>GIF 변환 시작</button><a id="download" hidden download="soop-animation.gif">완성 GIF 다운로드</a></div>
 <p id="status" role="status"></p><progress id="progress" max="100" value="0"></progress>
 <p class="note">GIF 형식은 256색 제한이 있어 MP4와 동일한 화질을 보장할 수 없습니다. 자동 최적화로도 20MB를 넘는 경우 다운로드 전에 안내합니다.</p>
 </section></main>
-<script type="module" src="gif-tool.js"></script>
+<script type="module" src="gif-tool.js?v=4"></script>
 </body></html>

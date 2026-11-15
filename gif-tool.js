@@ -32,10 +32,90 @@ function drawSign(target,w,h){
  if(!signReady)return;
  const dw=w*Number($("signScale").value)/100;
  const dh=dw*sign.naturalHeight/sign.naturalWidth;
- target.save();target.globalAlpha=Number($("signOpacity").value)/100;
- target.drawImage(sign,signX*w-dw/2,signY*h-dh/2,dw,dh);
+ const x=signX*w-dw/2,y=signY*h-dh/2;
+ const ratio=w/Math.max(1,canvas.width);
+ const opacity=Number($("signOpacity").value)/100;
+ const colorAlpha=(hex,alpha)=>{
+  const v=hex.replace("#","");
+  const r=parseInt(v.slice(0,2),16),g=parseInt(v.slice(2,4),16),b=parseInt(v.slice(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+ };
+ target.save();
+ // 캔버스 그림자는 투명 PNG의 알파 형태를 따라 그려집니다.
+ if($("shadowEnabled").checked){
+  target.save();
+  target.globalAlpha=opacity;
+  target.shadowColor=colorAlpha($("shadowColor").value,Number($("shadowOpacity").value)/100);
+  target.shadowBlur=Number($("shadowBlur").value)*ratio;
+  target.shadowOffsetX=Number($("shadowX").value)*ratio;
+  target.shadowOffsetY=Number($("shadowY").value)*ratio;
+  // 원본 이미지가 두 번 보이지 않도록 그림자만 별도 레이어에 렌더링
+  const pad=Math.ceil((Number($("shadowBlur").value)*2+80)*ratio);
+  const layer=document.createElement("canvas");
+  layer.width=Math.max(1,Math.ceil(dw+pad*2));layer.height=Math.max(1,Math.ceil(dh+pad*2));
+  const lc=layer.getContext("2d");
+  lc.shadowColor=target.shadowColor;
+  lc.shadowColor=colorAlpha($("shadowColor").value,Number($("shadowOpacity").value)/100);
+  lc.shadowBlur=Number($("shadowBlur").value)*ratio;
+  lc.shadowOffsetX=Number($("shadowX").value)*ratio;
+  lc.shadowOffsetY=Number($("shadowY").value)*ratio;
+  lc.drawImage(sign,pad,pad,dw,dh);
+  // destination-out: 서명 본체를 지워 그림자만 남김
+  lc.globalCompositeOperation="destination-out";
+  lc.shadowColor="transparent";lc.shadowBlur=0;lc.shadowOffsetX=0;lc.shadowOffsetY=0;
+  lc.drawImage(sign,pad,pad,dw,dh);
+  target.shadowColor="transparent";target.shadowBlur=0;target.shadowOffsetX=0;target.shadowOffsetY=0;
+  target.drawImage(layer,x-pad,y-pad);
+  target.restore();
+ }
+ if($("glowEnabled").checked){
+  target.save();
+  const size=Number($("glowSize").value)*ratio;
+  const pad=Math.ceil(size*3+8);
+  const layer=document.createElement("canvas");
+  layer.width=Math.max(1,Math.ceil(dw+pad*2));
+  layer.height=Math.max(1,Math.ceil(dh+pad*2));
+  const lc=layer.getContext("2d");
+  lc.drawImage(sign,pad,pad,dw,dh);
+  lc.globalCompositeOperation="source-in";
+  lc.fillStyle=$("glowColor").value;
+  lc.fillRect(0,0,layer.width,layer.height);
+  lc.globalCompositeOperation="source-over";
+  target.globalAlpha=opacity*Number($("glowOpacity").value)/100;
+  target.globalCompositeOperation=$("glowBlend").value==="screen"?"screen":"source-over";
+  target.shadowColor=$("glowColor").value;
+  target.shadowBlur=size;
+  const passes=1+Math.round(Number($("glowStrength").value)/25);
+  for(let i=0;i<passes;i++){
+   target.drawImage(layer,x-pad,y-pad);
+  }
+  target.restore();
+ }
+ target.globalAlpha=opacity;
+ target.drawImage(sign,x,y,dw,dh);
  target.restore();
 }
+const styleDefaults={
+ glowEnabled:false,glowColor:"#ffffff",glowOpacity:"70",glowSize:"18",glowStrength:"50",glowBlend:"normal",
+ shadowEnabled:false,shadowColor:"#000000",shadowOpacity:"70",shadowBlur:"8",shadowX:"4",shadowY:"4"
+};
+function updateStyleLabels(){
+ for(const id of ["glowOpacity","glowSize","glowStrength","shadowOpacity","shadowBlur","shadowX","shadowY"]){
+  const suffix=id.toLowerCase().includes("opacity")||id==="glowStrength"?"%":"px";
+  $(id+"Value").textContent=$(id).value+suffix;
+ }
+}
+for(const id of Object.keys(styleDefaults)){
+ $(id).addEventListener("input",()=>{updateStyleLabels();updatePreview();});
+ $(id).addEventListener("change",()=>{updateStyleLabels();updatePreview();});
+}
+$("resetEffects").addEventListener("click",()=>{
+ for(const [id,v] of Object.entries(styleDefaults)){
+  if(typeof v==="boolean")$(id).checked=v;else $(id).value=v;
+ }
+ updateStyleLabels();updatePreview();
+});
+updateStyleLabels();
 function resetSign(){signX=.75;signY=.82;updatePreview();}
 $("resetSign").onclick=resetSign;
 for(const [input,label] of [["signScale","signScaleLabel"],["signOpacity","signOpacityLabel"]]){
