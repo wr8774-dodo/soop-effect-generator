@@ -1,4 +1,11 @@
-import { GIFEncoder, quantize, applyPalette } from "https://esm.sh/gifenc@1.0.3";
+// 외부 GIF 라이브러리는 변환을 시작할 때만 불러옵니다.
+// 네트워크에서 라이브러리를 못 받아도 MP4 업로드와 미리보기는 동작합니다.
+let GIFEncoder, quantize, applyPalette;
+async function ensureEncoder(){
+ if(GIFEncoder)return;
+ const lib=await import("https://esm.sh/gifenc@1.0.3");
+ ({GIFEncoder,quantize,applyPalette}=lib);
+}
 
 const $=id=>document.getElementById(id);
 const video=document.createElement("video");
@@ -36,13 +43,38 @@ for(const [input,label] of [["signScale","signScaleLabel"],["signOpacity","signO
 }
 $("videoFile").addEventListener("change",async e=>{
  const file=e.target.files?.[0];if(!file)return;
+ $("convert").disabled=true;
+ status("영상 정보를 읽는 중...");
+ $("videoInfo").textContent="영상 불러오는 중...";
  if(videoUrl)URL.revokeObjectURL(videoUrl);
  videoUrl=URL.createObjectURL(file);
- video.src=videoUrl;
+ video.pause();
+ video.removeAttribute("src");
+ video.load();
  try{
   await new Promise((resolve,reject)=>{
-   video.onloadedmetadata=resolve;video.onerror=()=>reject(Error("영상 정보를 읽을 수 없습니다."));
+   let finished=false;
+   const timer=setTimeout(()=>finish(Error("영상 로딩 시간 초과: MP4 코덱을 확인해주세요.")),15000);
+   function finish(error){
+    if(finished)return;finished=true;clearTimeout(timer);
+    video.removeEventListener("loadedmetadata",ready);
+    video.removeEventListener("loadeddata",ready);
+    video.removeEventListener("error",failed);
+    error?reject(error):resolve();
+   }
+   function ready(){if(video.videoWidth&&video.videoHeight)finish();}
+   function failed(){
+    const code=video.error?.code;
+    finish(Error("영상을 재생할 수 없습니다"+(code?` (오류 ${code})`:"")+". H.264 영상으로 변환해 다시 시도해주세요."));
+   }
+   video.addEventListener("loadedmetadata",ready);
+   video.addEventListener("loadeddata",ready);
+   video.addEventListener("error",failed);
+   video.src=videoUrl;
+   video.load();
+   if(video.readyState>=1)ready();
   });
+  if(!Number.isFinite(video.duration)||video.duration<=0)throw Error("영상 길이를 읽을 수 없습니다.");
   $("start").value=0;
   $("end").value=Math.min(5,video.duration).toFixed(2);
   $("start").max=video.duration;
@@ -51,9 +83,12 @@ $("videoFile").addEventListener("change",async e=>{
   $("seek").value=0;
   $("videoInfo").textContent=`${video.videoWidth}×${video.videoHeight} · ${video.duration.toFixed(2)}초`;
   $("convert").disabled=false;
-  await seekVideo(0);
+  try{await seekVideo(0);}catch(err){console.warn("초기 프레임 이동:",err);}
   updatePreview();status("영상 준비 완료");
- }catch(err){status(err.message);}
+ }catch(err){
+  $("videoInfo").textContent="영상 로딩 실패";
+  status(err.message);
+ }
 });
 $("signFile").addEventListener("change",e=>{
  const file=e.target.files?.[0];if(!file)return;
@@ -166,3 +201,5 @@ $("convert").addEventListener("click",async()=>{
  }catch(err){console.error(err);status("변환 실패: "+err.message);}
  finally{processing=false;$("convert").disabled=false;updatePreview();}
 });
+
+status("준비 완료 · MP4 파일을 선택해주세요.");
