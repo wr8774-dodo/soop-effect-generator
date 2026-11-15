@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MP4 → GIF · SOOP 효과 생성기</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,"Malgun Gothic",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#101116;color:#f4f4f6}
+main{max-width:1040px;margin:auto;padding:24px 16px 60px}
+a{color:#c6b9ff}h1{font-size:27px}h2{font-size:19px;margin:0 0 15px}
+section{background:#1b1d26;border:1px solid #383a46;border-radius:18px;padding:20px;margin:16px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:15px}
+label{display:flex;flex-direction:column;gap:8px;font-weight:600;font-size:14px}
+input,button{font:inherit}input[type=file],input[type=number],input[type=range]{width:100%}
+input[type=number],input[type=file]{background:#101116;color:white;border:1px solid #555665;border-radius:9px;padding:10px}
+button{border:0;border-radius:10px;background:#7555d8;color:white;padding:12px 18px;cursor:pointer;font-weight:700}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.secondary{background:#414453}
+.stage{width:min(100%,760px);margin:auto;position:relative;background:#050505;touch-action:none;overflow:hidden;border-radius:10px}
+.stage canvas{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain}
+.note{font-size:13px;color:#b7b9c7;line-height:1.6}.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+#status{min-height:24px;color:#d5c8ff}progress{width:100%;height:14px}
+small{color:#bfc0cd}
+</style></head><body><main>
+<a href="index.html">← 효과 생성기로 돌아가기</a>
+<h1>🎞 MP4 → GIF 변환</h1>
+<p class="note">다운로드 전용 · 목표 파일 크기 19MB 이하 · 영상과 싸인은 이 브라우저에서 처리됩니다.</p>
+<section><h2>1. MP4 영상 및 싸인</h2><div class="grid">
+<label>MP4 영상<input id="videoFile" type="file" accept="video/mp4,video/*"></label>
+<label>싸인 이미지 (투명 PNG 권장)<input id="signFile" type="file" accept="image/png,image/webp,image/*"></label>
+<label>싸인 크기 <span id="signScaleLabel">25%</span><input id="signScale" type="range" min="5" max="100" value="25"></label>
+<label>싸인 투명도 <span id="signOpacityLabel">100%</span><input id="signOpacity" type="range" min="0" max="100" value="100"></label>
+</div><p class="note">미리보기에서 싸인을 드래그해 위치를 옮길 수 있습니다. 영상 재생 위치는 아래 슬라이더로 변경하세요.</p></section>
+<section><h2>2. 구간·화질</h2><div class="grid">
+<label>시작 시간 (초)<input id="start" type="number" min="0" step="0.1" value="0"></label>
+<label>종료 시간 (초)<input id="end" type="number" min="0" step="0.1" value="5"></label>
+<label>우선 해상도 (가로 px)<input id="width" type="number" min="160" max="1920" step="1" value="720"></label>
+<label>우선 프레임 (FPS)<input id="fps" type="number" min="5" max="30" value="15"></label>
+</div><p class="note">20MB 제한에 맞추기 위해 19MB를 목표로 자동 재변환합니다. 길이가 길면 FPS·해상도가 낮아질 수 있습니다.</p></section>
+<section><h2>3. 싸인 위치 미리보기</h2>
+<div class="stage" id="stage"><canvas id="preview" width="720" height="405"></canvas></div>
+<div style="margin-top:14px"><input id="seek" type="range" min="0" max="100" value="0"></div>
+<div class="actions"><button id="resetSign" class="secondary">싸인 위치 초기화</button><small id="videoInfo">영상을 선택해주세요.</small></div>
+</section>
+<section><h2>4. GIF 만들기</h2>
+<div class="actions"><button id="convert" disabled>GIF 변환 시작</button><a id="download" hidden download="soop-animation.gif">완성 GIF 다운로드</a></div>
+<p id="status" role="status"></p><progress id="progress" max="100" value="0"></progress>
+<p class="note">GIF 형식은 256색 제한이 있어 MP4와 동일한 화질을 보장할 수 없습니다. 자동 최적화로도 20MB를 넘는 경우 다운로드 전에 안내합니다.</p>
+</section></main>
+<script type="module" src="gif-tool.js"></script>
+</body></html>
