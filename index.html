@@ -1165,7 +1165,9 @@
     <div id="cardpackMode" class="hidden">
         <section class="panel">
             <h2>3. 카드팩 사진 · 효과 설정</h2>
-            <p class="help">등급별 사진을 끌어 넣고 위치를 맞춰주세요. 팩을 뜯어 미리 본 뒤 아래 ‘SOOP용 만들기’를 누르면 게시판용 코드가 생성됩니다. 출력은 16:9이며 사진 원본은 그대로 보존됩니다.</p>
+            <p class="help">등급별 사진을 끌어 넣고 위치를 맞춰주세요. 팩을 뜯어 미리 본 뒤 아래 ‘SOOP용 만들기’를 누르면 게시판용 코드가 생성됩니다. 출력은 16:9입니다. 편집기에 넣은 원본은 보존되고, 게시판에는 아래 설정에 따라 용량을 줄인 사진이 올라갑니다.</p>
+            <label class="control"><span>카드팩 업로드 용량</span><select id="cardpackCompression"><option value="1920" selected>권장 · 최대 1920px / WebP 압축</option><option value="1280">더 작게 · 최대 1280px / WebP 압축</option><option value="original">원본 그대로 · 대용량 업로드 주의</option></select></label>
+            <p class="help">압축해도 사진 비율과 위치는 유지됩니다. 게시판의 사진 저장은 배포된 압축본을 저장합니다. 원본 파일 그대로 배포하려면 ‘원본 그대로’를 선택해주세요.</p>
             <iframe id="cardpackEditor" title="카드팩 효과 설정과 미리보기" style="display:block;width:100%;height:780px;border:0;border-radius:16px" allow="autoplay"></iframe>
         </section>
     </div>
@@ -1366,7 +1368,7 @@
      JavaScript
 ========================================================= -->
 
-<script src="app.js?v=cardpack2"></script>
+<script src="app.js?v=cardpack3"></script>
 
 
 </body>

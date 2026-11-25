@@ -459,7 +459,7 @@ modeButtons.forEach(button => {
             deployResolution.closest("section").classList.toggle("hidden", state.mode === "cardpack");
             if (state.mode === "cardpack") {
                 const editor = document.getElementById("cardpackEditor");
-                if (!editor.getAttribute("src")) editor.src = "card-pack/?editor=1&v=2";
+                if (!editor.getAttribute("src")) editor.src = "card-pack/?editor=1&v=3";
             }
 
 
@@ -4356,16 +4356,20 @@ async function deployCardpack() {
     exportResult.classList.add("hidden");
     uploadStatus.classList.remove("hidden");
     uploadStatusTitle.textContent = "⏳ 카드팩 배포 중...";
-    uploadStatusText.textContent = "사진 원본과 위치 설정을 포함한 SOOP용 결과물을 만들고 있습니다.";
+    uploadStatusText.textContent = "사진 용량을 줄이고 위치 설정을 포함한 SOOP용 결과물을 만들고 있습니다.";
     exportButton.disabled = true;
     try {
         const editor = document.getElementById("cardpackEditor").contentWindow;
         if (!editor?.buildCardpackHTML) throw new Error("카드팩 편집기가 로딩 중입니다. 잠시 후 다시 눌러주세요.");
-        const html = await editor.buildCardpackHTML();
+        const maxSize = document.getElementById("cardpackCompression").value;
+        const html = await editor.buildCardpackHTML({maxSize:maxSize === "original" ? null : Number(maxSize)});
+        const payload = JSON.stringify({html, ratio:"16/9"});
+        const megabytes = (new Blob([payload]).size / 1024 / 1024).toFixed(2);
+        uploadStatusText.textContent = `업로드 용량 ${megabytes} MB · 서버로 전송 중입니다.`;
         const response = await fetch("https://soop-effect-api.wr7881.workers.dev/deploy", {
             method: "POST",
             headers: {"Content-Type":"application/json", "Authorization": `Bearer ${localStorage.getItem(AUTH_TOKEN_KEY) || ""}`},
-            body: JSON.stringify({html, ratio:"16/9"})
+            body: payload
         });
         let result;
         try { result = await response.json(); } catch { throw new Error(`서버 응답을 읽지 못했습니다. (${response.status})`); }
@@ -4379,6 +4383,8 @@ async function deployCardpack() {
         exportResult.scrollIntoView({behavior:"smooth",block:"center"});
     } catch (error) {
         uploadStatusTitle.textContent = "⚠ 배포에 실패했습니다";
-        uploadStatusText.textContent = error.message || "잠시 후 다시 시도해주세요.";
+        uploadStatusText.textContent = error instanceof TypeError && /fetch/i.test(error.message)
+            ? `${uploadStatusText.textContent} 연결에 실패했습니다. 용량 초과 또는 서버·네트워크/CORS 문제일 수 있습니다. ‘더 작게’로 시도하고, 계속 실패하면 서버 상태를 확인해주세요.`
+            : error.message || "잠시 후 다시 시도해주세요.";
     } finally { exportButton.disabled = false; }
 }

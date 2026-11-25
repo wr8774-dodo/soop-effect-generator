@@ -7,10 +7,28 @@ function originalFile(item) {
     const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     return new File([bytes],item.name,{type:item.type});
 }
-async function buildCardpackHTML() {
+async function encodePackPhoto(file,maxSize) {
+    const original=await fileDataURL(file);
+    if(!maxSize)return {data:original,name:file.name,type:file.type};
+    const img=new Image();
+    await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('배포용 사진을 읽지 못했습니다.'));img.src=original});
+    const scale=Math.min(1,maxSize/img.naturalWidth,maxSize/img.naturalHeight);
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+    const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    let data=canvas.toDataURL('image/webp',.88);
+    for(const quality of [.78,.65]){if(data.length<950000)break;data=canvas.toDataURL('image/webp',quality)}
+    if(data.length>=original.length)return {data:original,name:file.name,type:file.type};
+    const type=data.slice(5,data.indexOf(';'));
+    return {data,name:file.name.replace(/\.[^.]+$/,'')+(type==='image/webp'?'.webp':'.png'),type};
+}
+async function buildCardpackHTML({maxSize=1920}={}) {
     await restoredPhotos;
     if(tierPhotos.some(p=>!p))throw new Error('일반부터 레전더리까지 6개 등급에 사진을 모두 넣어주세요.');
-    const data={sound,photos:await Promise.all(tierPhotos.map(async item=>({data:await fileDataURL(item.file),name:item.file.name,type:item.file.type,crop:normalizedCrop(item.crop)}))),pack:packFile?await fileDataURL(packFile):null};
+    // Process sequentially to avoid decoding six large originals at once.
+    const data={sound,photos:[],pack:null,optimized:!!maxSize};
+    for(const item of tierPhotos)data.photos.push({...await encodePackPhoto(item.file,maxSize),crop:normalizedCrop(item.crop)});
+    if(packFile)data.pack=(await encodePackPhoto(packFile,maxSize)).data;
     const read=async path=>{const response=await fetch(new URL(path,location.href));if(!response.ok)throw new Error('카드팩 파일을 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.');return response.text()};
     const [template,css,photos,position,runtime]=await Promise.all(['index.html','reveal.css','photos.js','position.js','viewer.js'].map(read));
     // Escape HTML delimiters even in user-supplied filenames.
