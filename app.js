@@ -454,6 +454,14 @@ modeButtons.forEach(button => {
             polaroidMode.classList.toggle("hidden", state.mode !== "polaroid");
             storyMode.classList.toggle("hidden", state.mode !== "story");
             fisheyeMode.classList.toggle("hidden", state.mode !== "fisheye");
+            document.getElementById("cardpackMode").classList.toggle("hidden", state.mode !== "cardpack");
+            document.getElementById("outputRatioPanel").classList.toggle("hidden", state.mode === "cardpack");
+            deployResolution.closest("section").classList.toggle("hidden", state.mode === "cardpack");
+            if (state.mode === "cardpack") {
+                const editor = document.getElementById("cardpackEditor");
+                if (!editor.getAttribute("src")) editor.src = "card-pack/?editor=1&v=2";
+            }
+
 
             if (state.mode === "fisheye") {
                 requestAnimationFrame(renderFisheye);
@@ -2716,6 +2724,7 @@ function createProjectSettings() {
 ========================================================= */
 
 exportButton.addEventListener("click", async () => {
+    if (state.mode === "cardpack") { await deployCardpack(); return; }
     if (state.mode === "story") storyRatio = "9:16";
     const validation = validateProject();
 
@@ -4340,3 +4349,36 @@ document.addEventListener("click",()=>setTimeout(syncStoryRatioUI,0));
 syncStoryRatioUI();
 
 
+
+
+// Card-pack category uses the same authenticated deployment endpoint and output UI.
+async function deployCardpack() {
+    exportResult.classList.add("hidden");
+    uploadStatus.classList.remove("hidden");
+    uploadStatusTitle.textContent = "⏳ 카드팩 배포 중...";
+    uploadStatusText.textContent = "사진 원본과 위치 설정을 포함한 SOOP용 결과물을 만들고 있습니다.";
+    exportButton.disabled = true;
+    try {
+        const editor = document.getElementById("cardpackEditor").contentWindow;
+        if (!editor?.buildCardpackHTML) throw new Error("카드팩 편집기가 로딩 중입니다. 잠시 후 다시 눌러주세요.");
+        const html = await editor.buildCardpackHTML();
+        const response = await fetch("https://soop-effect-api.wr7881.workers.dev/deploy", {
+            method: "POST",
+            headers: {"Content-Type":"application/json", "Authorization": `Bearer ${localStorage.getItem(AUTH_TOKEN_KEY) || ""}`},
+            body: JSON.stringify({html, ratio:"16/9"})
+        });
+        let result;
+        try { result = await response.json(); } catch { throw new Error(`서버 응답을 읽지 못했습니다. (${response.status})`); }
+        if (!response.ok || !result.ok) throw new Error(result.error || `배포 실패 (${response.status})`);
+        if (!result.publicUrl) throw new Error("배포 주소를 받지 못했습니다.");
+        const url = new URL(result.publicUrl);
+        if (url.protocol !== "https:") throw new Error("올바르지 않은 배포 주소입니다.");
+        iframeCode.value = `<iframe src="${url.href.replaceAll('&','&amp;').replaceAll('"','&quot;')}" width="100%" style="width:100%;aspect-ratio:16/9;border:0;display:block;" scrolling="no" frameborder="0" allow="autoplay"></iframe>`;
+        uploadStatus.classList.add("hidden");
+        exportResult.classList.remove("hidden");
+        exportResult.scrollIntoView({behavior:"smooth",block:"center"});
+    } catch (error) {
+        uploadStatusTitle.textContent = "⚠ 배포에 실패했습니다";
+        uploadStatusText.textContent = error.message || "잠시 후 다시 시도해주세요.";
+    } finally { exportButton.disabled = false; }
+}
